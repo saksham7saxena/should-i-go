@@ -1,4 +1,4 @@
-// AuthContext: Manages Supabase Anonymous Auth and User Preferences
+// AuthContext: Manages Supabase Anonymous Auth and User Preferences V3
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { UserPreferences } from '../types';
@@ -60,11 +60,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPreferences(prefs);
   };
 
+  // Phase 11: Onboarding is complete when interests array is non-empty and max_price is set
   const hasCompletedOnboarding = Boolean(
     preferences &&
-    preferences.interests &&
+    Array.isArray(preferences.interests) &&
     preferences.interests.length > 0 &&
-    preferences.primary_goal
+    preferences.max_price !== undefined &&
+    preferences.max_price !== null
   );
 
   return (

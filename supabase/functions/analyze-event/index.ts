@@ -1,4 +1,4 @@
-// Supabase Edge Function: analyze-event (Production Hardened V3)
+// Supabase Edge Function: analyze-event (Production Hardened V3 - Gemini 3.6 Flash)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
@@ -96,7 +96,6 @@ function isPrivateIp(hostname: string): boolean {
   ) {
     return true;
   }
-  // Check 172.16.0.0 - 172.31.255.255
   if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(lower)) {
     return true;
   }
@@ -142,7 +141,7 @@ async function fetchPublicHtml(
     }
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     try {
       const res = await fetch(currentUrl, {
@@ -156,7 +155,6 @@ async function fetchPublicHtml(
       });
       clearTimeout(timeoutId);
 
-      // Handle Redirects
       if ([301, 302, 307, 308].includes(res.status)) {
         redirects++;
         if (redirects > maxRedirects) {
@@ -180,7 +178,7 @@ async function fetchPublicHtml(
       }
 
       const blob = await res.blob();
-      if (blob.size > 1024 * 1024) { // 1 MB limit
+      if (blob.size > 1024 * 1024) {
         return { success: false, errorCode: "RESPONSE_TOO_LARGE", errorMessage: "Event page content exceeds size limit (1 MB)." };
       }
 
@@ -190,7 +188,7 @@ async function fetchPublicHtml(
         .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
         .replace(/<[^>]+>/g, " ")
         .replace(/\s+/g, " ")
-        .slice(0, 20000); // 20KB snippet limit
+        .slice(0, 20000);
 
       return {
         success: true,
@@ -263,14 +261,14 @@ serve(async (req) => {
       return jsonResponse({ error: { code: "INVALID_URL", message: "Missing or invalid URL parameter." }, requestId }, 400, corsHeaders);
     }
 
-    // Phase 4: Server-side Gemini Configuration Verification
+    // Step 3: Updated Gemini 3.6 Flash configuration & Model env variable
     const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
-    const geminiModel = Deno.env.get("GEMINI_MODEL") || "gemini-1.5-flash";
+    const geminiModel = Deno.env.get("GEMINI_MODEL") || "gemini-3.6-flash";
     if (!geminiApiKey) {
       return jsonResponse({ error: { code: "SERVER_MISCONFIGURED", message: "GEMINI_API_KEY is not configured." }, requestId }, 500, corsHeaders);
     }
 
-    // Phase 5 & 7: SSRF-Protected HTML Fetching (Fail Closed)
+    // SSRF-Protected HTML Fetching (Fail Closed)
     const fetchResult = await fetchPublicHtml(url, requestId);
     if (!fetchResult.success) {
       return jsonResponse(
@@ -283,7 +281,6 @@ serve(async (req) => {
       );
     }
 
-    // Call Gemini API with Structured Extraction Prompt
     const prompt = `You are a strict, factual event metadata extractor.
 Analyze the public event content below:
 
@@ -315,15 +312,19 @@ STRICT RULES:
 4. If topics are unlisted, return empty array [].
 5. Return ONLY valid JSON with no markdown tags.`;
 
+    // Stable Gemini API Endpoint
     const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`;
     const modelStart = Date.now();
 
+    // Step 3: Removed deprecated sampling parameters (temperature, top_p, top_k)
     const geminiRes = await fetch(geminiEndpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.1, responseMimeType: "application/json" },
+        generationConfig: {
+          responseMimeType: "application/json",
+        },
       }),
     });
 
@@ -352,7 +353,6 @@ STRICT RULES:
       );
     }
 
-    // Phase 6: Output Validation & Extraction Confidence Calculation
     const criticalFields = [
       Boolean(parsed.title),
       Boolean(parsed.startDate),

@@ -49,39 +49,39 @@ export const EventsListPage: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-5xl mx-auto py-8 px-4 space-y-8 animate-fade-in">
-      {/* Top Title & Quick Analyze Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+    <div className="max-w-5xl mx-auto py-10 px-4 space-y-8 animate-fade-in text-gray-900">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-200 pb-6">
         <div>
           <div className="flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-emerald-400" />
-            <h1 className="text-2xl font-black text-white">Your Saved Events</h1>
+            <Calendar className="w-6 h-6 text-black" />
+            <h1 className="text-2xl font-extrabold text-gray-900">Saved Event Decisions</h1>
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Track decisions, update attendance status, and log post-event feedback.
+          <p className="text-xs text-gray-500 mt-1">
+            Track decisions, update attendance status, and log feedback.
           </p>
         </div>
 
         <Link
           to="/analyze"
-          className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-sky-500 hover:from-indigo-500 hover:to-sky-400 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 shrink-0"
+          className="px-4 py-2 bg-black hover:bg-gray-800 text-white font-semibold text-xs rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 shrink-0"
         >
           <Sparkles className="w-4 h-4" />
           <span>Analyze New Event</span>
         </Link>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-800/80">
-        <Filter className="w-4 h-4 text-slate-500 shrink-0 mr-1" />
+      {/* Filter Pills - Cal.com style nav-pill-group */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-2 border-b border-gray-100">
+        <Filter className="w-4 h-4 text-gray-400 shrink-0 mr-1" />
         {filterTabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setFilterStatus(tab.key)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
               filterStatus === tab.key
-                ? 'bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 shadow-sm'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                ? 'bg-black text-white shadow-sm'
+                : 'text-gray-600 hover:text-black hover:bg-gray-100'
             }`}
           >
             {tab.label}
@@ -89,20 +89,20 @@ export const EventsListPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Content Grid / Loading / Empty */}
+      {/* Content Grid */}
       {isLoading ? (
         <div className="py-16 text-center space-y-3">
-          <Loader2 className="w-8 h-8 text-indigo-400 animate-spin mx-auto" />
-          <p className="text-xs text-slate-400">Loading your saved recommendations...</p>
+          <Loader2 className="w-8 h-8 text-black animate-spin mx-auto" />
+          <p className="text-xs text-gray-500">Loading saved recommendations...</p>
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="bg-slate-900/40 border border-slate-800 rounded-3xl p-12 text-center space-y-4 max-w-md mx-auto">
-          <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
+        <div className="bg-[#f5f5f5] border border-gray-200 rounded-xl p-12 text-center space-y-4 max-w-md mx-auto">
+          <div className="w-12 h-12 rounded-xl bg-white border border-gray-200 text-gray-700 flex items-center justify-center mx-auto shadow-xs">
             <BookmarkPlus className="w-6 h-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-bold text-white">No saved events found</h3>
-            <p className="text-xs text-slate-400">
+            <h3 className="text-base font-bold text-gray-900">No saved events found</h3>
+            <p className="text-xs text-gray-500">
               {filterStatus === 'ALL'
                 ? "You haven't saved any event recommendations yet."
                 : `No events currently marked as ${filterStatus}.`}
@@ -110,7 +110,7 @@ export const EventsListPage: React.FC = () => {
           </div>
           <Link
             to="/analyze"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-black hover:bg-gray-800 text-white font-semibold text-xs rounded-lg shadow-sm transition-all"
           >
             <Sparkles className="w-4 h-4" />
             <span>Analyze Your First Event</span>

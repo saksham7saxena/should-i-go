@@ -25,13 +25,13 @@ export const InterestChip: React.FC<InterestChipProps> = ({ label, isSelected, o
     <button
       type="button"
       onClick={() => onToggle(label)}
-      className={`px-4 py-2.5 rounded-xl text-sm font-semibold border transition-all duration-200 flex items-center gap-2 select-none ${
+      className={`px-3.5 py-2 rounded-lg text-xs font-semibold border transition-all flex items-center gap-2 select-none ${
         isSelected
-          ? 'bg-indigo-600/30 border-indigo-500 text-indigo-300 shadow-md shadow-indigo-500/20 scale-[1.02]'
-          : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 hover:border-slate-700'
+          ? 'bg-black border-black text-white shadow-sm'
+          : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
       }`}
     >
-      <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-indigo-400 animate-pulse' : 'bg-slate-600'}`} />
+      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-gray-400'}`} />
       <span>{label}</span>
     </button>
   );

@@ -52,44 +52,44 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
+      <div className="bg-white border border-gray-200 rounded-xl max-w-md w-full p-6 shadow-xl relative text-gray-900">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 p-1 rounded-md hover:bg-gray-100 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
         {isDone ? (
           <div className="py-8 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/40">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
               <Check className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-white">Thank You for Your Feedback!</h3>
-            <p className="text-xs text-slate-400">Your rating helps refine decision model evaluation.</p>
+            <h3 className="text-xl font-bold text-gray-900">Thank You for Your Feedback!</h3>
+            <p className="text-xs text-gray-500">Your rating helps refine decision evaluation accuracy.</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <h3 className="text-lg font-extrabold text-white flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-indigo-400" />
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-black" />
                 Event & Recommendation Feedback
               </h3>
-              <p className="text-xs text-slate-400 mt-1">Help us measure recommendation accuracy.</p>
+              <p className="text-xs text-gray-500 mt-1">Help us measure decision accuracy.</p>
             </div>
 
             {/* Did you attend? */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300">Did you attend this event?</label>
+              <label className="text-xs font-semibold text-gray-700">Did you attend this event?</label>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setAttended(true)}
-                  className={`py-2 px-4 rounded-xl border text-sm font-semibold transition-all ${
+                  className={`py-2 px-4 rounded-lg border text-xs font-semibold transition-all ${
                     attended
-                      ? 'bg-indigo-600/30 border-indigo-500 text-indigo-300'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
+                      ? 'bg-black text-white border-black shadow-sm'
+                      : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   Yes, Attended
@@ -97,10 +97,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setAttended(false)}
-                  className={`py-2 px-4 rounded-xl border text-sm font-semibold transition-all ${
+                  className={`py-2 px-4 rounded-lg border text-xs font-semibold transition-all ${
                     !attended
-                      ? 'bg-rose-600/30 border-rose-500 text-rose-300'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
+                      ? 'bg-rose-50 border-rose-200 text-rose-700'
+                      : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   No, Skipped
@@ -111,15 +111,15 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
             {/* Was it worth it? */}
             {attended && (
               <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-300">Was the event worth your time & money?</label>
+                <label className="text-xs font-semibold text-gray-700">Was the event worth your time & money?</label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setWorthIt(true)}
-                    className={`py-2 px-4 rounded-xl border text-sm font-semibold transition-all ${
+                    className={`py-2 px-4 rounded-lg border text-xs font-semibold transition-all ${
                       worthIt
-                        ? 'bg-emerald-600/30 border-emerald-500 text-emerald-300'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800 font-bold'
+                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     Yes, Worth It
@@ -127,10 +127,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setWorthIt(false)}
-                    className={`py-2 px-4 rounded-xl border text-sm font-semibold transition-all ${
+                    className={`py-2 px-4 rounded-lg border text-xs font-semibold transition-all ${
                       !worthIt
-                        ? 'bg-amber-600/30 border-amber-500 text-amber-300'
-                        : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
+                        ? 'bg-amber-50 border-amber-300 text-amber-800 font-bold'
+                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                     }`}
                   >
                     Not Worth It
@@ -139,22 +139,22 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               </div>
             )}
 
-            {/* Recommendation Accuracy Rating (1-5) */}
+            {/* Accuracy Rating */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-300">Recommendation Accuracy Rating (1–5)</label>
-              <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border border-slate-800">
+              <label className="text-xs font-semibold text-gray-700">Recommendation Accuracy (1–5)</label>
+              <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     type="button"
                     onClick={() => setAccuracyRating(star)}
-                    className="p-1.5 transition-transform hover:scale-125 focus:outline-none"
+                    className="p-1 transition-transform hover:scale-125 focus:outline-none"
                   >
                     <Star
                       className={`w-6 h-6 ${
                         star <= accuracyRating
-                          ? 'fill-amber-400 text-amber-400'
-                          : 'text-slate-600 hover:text-slate-400'
+                          ? 'fill-amber-400 text-amber-500'
+                          : 'text-gray-300 hover:text-gray-400'
                       }`}
                     />
                   </button>
@@ -164,13 +164,13 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
 
             {/* Optional Notes */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">Optional Notes</label>
+              <label className="text-xs font-semibold text-gray-700">Optional Notes</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="What made this recommendation accurate or inaccurate?"
                 rows={3}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500"
+                className="w-full bg-white border border-gray-200 rounded-lg p-3 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-black"
               />
             </div>
 
@@ -178,7 +178,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3 bg-gradient-to-r from-indigo-600 to-sky-500 hover:from-indigo-500 hover:to-sky-400 text-white font-bold rounded-xl shadow-lg transition-all"
+              className="w-full py-2.5 bg-black hover:bg-gray-800 text-white font-bold rounded-lg shadow-sm transition-all text-xs"
             >
               {isSubmitting ? 'Saving Feedback...' : 'Submit Feedback'}
             </button>

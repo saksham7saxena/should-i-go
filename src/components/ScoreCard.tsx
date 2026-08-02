@@ -8,62 +8,56 @@ interface ScoreCardProps {
 }
 
 export const ScoreCard: React.FC<ScoreCardProps> = ({ score, breakdown }) => {
-  const getScoreColor = (val: number) => {
-    if (val >= 75) return 'from-emerald-500 to-teal-400 text-emerald-400';
-    if (val >= 50) return 'from-amber-500 to-yellow-400 text-amber-400';
-    return 'from-rose-500 to-red-400 text-rose-400';
-  };
-
   const metrics = [
     {
       label: 'Interest Match',
       score: breakdown.interestMatchScore,
       max: 35,
       icon: Heart,
-      color: 'bg-rose-500',
+      color: 'bg-black',
     },
     {
       label: 'Goal Alignment',
       score: breakdown.goalMatchScore,
       max: 25,
       icon: Target,
-      color: 'bg-indigo-500',
+      color: 'bg-gray-800',
     },
     {
       label: 'Price Fit',
       score: breakdown.priceFitScore,
       max: 20,
       icon: DollarSign,
-      color: 'bg-emerald-500',
+      color: 'bg-emerald-600',
     },
     {
       label: 'Timing & Schedule',
       score: breakdown.timingFitScore,
       max: 10,
       icon: Clock,
-      color: 'bg-amber-500',
+      color: 'bg-amber-600',
     },
     {
       label: 'Novelty & Discovery',
       score: breakdown.noveltyScore,
       max: 10,
       icon: Sparkles,
-      color: 'bg-sky-500',
+      color: 'bg-blue-600',
     },
   ];
 
   return (
-    <div className="bg-slate-900/70 border border-slate-800 rounded-2xl p-5 sm:p-6 backdrop-blur-md shadow-xl">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4 mb-5">
+    <div className="bg-[#f5f5f5] border border-gray-200 rounded-xl p-6 shadow-sm">
+      <div className="flex items-center justify-between border-b border-gray-200 pb-4 mb-5">
         <div>
-          <h3 className="text-base font-bold text-slate-200">Scoring Breakdown</h3>
-          <p className="text-xs text-slate-400">Deterministic algorithm evaluation across 5 categories</p>
+          <h3 className="text-base font-bold text-gray-900">Scoring Breakdown</h3>
+          <p className="text-xs text-gray-500">Deterministic evaluation across 5 categories</p>
         </div>
         <div className="text-right">
-          <span className={`text-3xl sm:text-4xl font-black bg-gradient-to-r ${getScoreColor(score)} bg-clip-text text-transparent`}>
+          <span className="text-3xl font-black text-black">
             {score}
           </span>
-          <span className="text-sm font-semibold text-slate-400"> / 100</span>
+          <span className="text-sm font-semibold text-gray-500"> / 100</span>
         </div>
       </div>
 
@@ -74,18 +68,18 @@ export const ScoreCard: React.FC<ScoreCardProps> = ({ score, breakdown }) => {
           return (
             <div key={item.label} className="space-y-1.5">
               <div className="flex items-center justify-between text-xs sm:text-sm">
-                <div className="flex items-center gap-2 text-slate-300 font-medium">
-                  <Icon className="w-4 h-4 text-slate-400" />
+                <div className="flex items-center gap-2 text-gray-700 font-medium">
+                  <Icon className="w-4 h-4 text-gray-500" />
                   <span>{item.label}</span>
                 </div>
-                <div className="font-mono text-slate-400 text-xs">
-                  <span className="font-bold text-white">{item.score}</span> / {item.max} pts
+                <div className="font-mono text-gray-500 text-xs">
+                  <span className="font-bold text-gray-900">{item.score}</span> / {item.max} pts
                 </div>
               </div>
               {/* Progress Bar */}
-              <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+              <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all duration-700 ${item.color}`}
+                  className={`h-full rounded-full transition-all duration-500 ${item.color}`}
                   style={{ width: `${percentage}%` }}
                 />
               </div>

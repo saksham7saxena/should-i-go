@@ -44,7 +44,7 @@ export const OnboardingPage: React.FC = () => {
   };
 
   const goalsList: { label: PrimaryGoalType; description: string }[] = [
-    { label: 'Learn something', description: 'Focus on workshops, technical talks, and industry keynotes.' },
+    { label: 'Learn something', description: 'Focus on workshops, technical talks, and keynotes.' },
     { label: 'Meet people', description: 'Prioritize networking, founder mixers, and community meetups.' },
     { label: 'Have fun', description: 'Look for festivals, live concerts, games, and entertainment.' },
     { label: 'Try something new', description: 'Discover fresh topics and unique local experiences.' },
@@ -53,7 +53,7 @@ export const OnboardingPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (interests.length === 0) {
-      alert('Please select at least one interest to build your scoring profile.');
+      alert('Please select at least one interest.');
       return;
     }
 
@@ -75,26 +75,26 @@ export const OnboardingPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4 space-y-8 animate-fade-in">
+    <div className="max-w-2xl mx-auto py-10 px-4 space-y-8 animate-fade-in text-gray-900">
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-bold uppercase tracking-wider">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Personal Decision Profile</span>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-800 text-xs font-semibold">
+          <Sparkles className="w-3.5 h-3.5 text-black" />
+          <span>Decision Profile</span>
         </div>
-        <h1 className="text-3xl font-black text-white">What events matter to you?</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-3xl font-extrabold text-gray-900">What events matter to you?</h1>
+        <p className="text-sm text-gray-500">
           Your selections determine deterministic event recommendation scores.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8 bg-slate-900/70 border border-slate-800 rounded-3xl p-6 sm:p-8 backdrop-blur-md shadow-2xl">
+      <form onSubmit={handleSubmit} className="space-y-8 bg-white border border-gray-200 rounded-xl p-6 sm:p-8 shadow-sm">
         {/* Step 1: Select Interests */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-200">
-            <Sparkles className="w-4 h-4 text-indigo-400" />
-            <span>Select Your Interests</span>
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-900 uppercase tracking-wider">
+            <Sparkles className="w-4 h-4 text-black" />
+            <span>Target Interests</span>
           </div>
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex flex-wrap gap-2">
             {ALL_INTERESTS.map((item) => (
               <InterestChip
                 key={item}
@@ -107,13 +107,13 @@ export const OnboardingPage: React.FC = () => {
         </div>
 
         {/* Step 2: Maximum Ticket Price */}
-        <div className="space-y-3 pt-4 border-t border-slate-800">
-          <div className="flex items-center justify-between text-sm font-bold text-slate-200">
+        <div className="space-y-3 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between text-xs font-bold text-gray-900 uppercase tracking-wider">
             <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-emerald-400" />
+              <DollarSign className="w-4 h-4 text-gray-700" />
               <span>Maximum Ticket Price</span>
             </div>
-            <span className="font-mono text-indigo-400 text-base font-bold">
+            <span className="font-mono text-black text-sm font-bold">
               {maxPrice === 0 ? 'Free Only ($0)' : `$${maxPrice}`}
             </span>
           </div>
@@ -124,9 +124,9 @@ export const OnboardingPage: React.FC = () => {
             step={10}
             value={maxPrice}
             onChange={(e) => setMaxPrice(Number(e.target.value))}
-            className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
           />
-          <div className="flex justify-between text-[11px] text-slate-400 font-mono">
+          <div className="flex justify-between text-[11px] text-gray-500 font-mono">
             <span>$0 (Free)</span>
             <span>$100</span>
             <span>$250</span>
@@ -135,9 +135,9 @@ export const OnboardingPage: React.FC = () => {
         </div>
 
         {/* Step 3: Preferred Days */}
-        <div className="space-y-3 pt-4 border-t border-slate-800">
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-200">
-            <Calendar className="w-4 h-4 text-amber-400" />
+        <div className="space-y-3 pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-900 uppercase tracking-wider">
+            <Calendar className="w-4 h-4 text-gray-700" />
             <span>Preferred Days</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -146,10 +146,10 @@ export const OnboardingPage: React.FC = () => {
                 key={day}
                 type="button"
                 onClick={() => toggleDay(day)}
-                className={`py-3 px-4 rounded-xl border text-xs font-bold transition-all ${
+                className={`py-2.5 px-4 rounded-lg border text-xs font-bold transition-all ${
                   preferredDays.includes(day)
-                    ? 'bg-amber-500/20 border-amber-500 text-amber-300'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
+                    ? 'bg-black border-black text-white'
+                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                 }`}
               >
                 {day}s
@@ -159,10 +159,10 @@ export const OnboardingPage: React.FC = () => {
         </div>
 
         {/* Step 4: Preferred Times */}
-        <div className="space-y-3 pt-4 border-t border-slate-800">
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-200">
-            <Clock className="w-4 h-4 text-sky-400" />
-            <span>Preferred Event Times</span>
+        <div className="space-y-3 pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-900 uppercase tracking-wider">
+            <Clock className="w-4 h-4 text-gray-700" />
+            <span>Preferred Event Hours</span>
           </div>
           <div className="grid grid-cols-3 gap-3">
             {(['Morning', 'Afternoon', 'Evening'] as PreferredTimeType[]).map((time) => (
@@ -170,10 +170,10 @@ export const OnboardingPage: React.FC = () => {
                 key={time}
                 type="button"
                 onClick={() => toggleTime(time)}
-                className={`py-3 px-3 rounded-xl border text-xs font-bold transition-all ${
+                className={`py-2.5 px-3 rounded-lg border text-xs font-bold transition-all ${
                   preferredTimes.includes(time)
-                    ? 'bg-sky-500/20 border-sky-500 text-sky-300'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
+                    ? 'bg-black border-black text-white'
+                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                 }`}
               >
                 {time}
@@ -183,10 +183,10 @@ export const OnboardingPage: React.FC = () => {
         </div>
 
         {/* Step 5: Primary Goal */}
-        <div className="space-y-3 pt-4 border-t border-slate-800">
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-200">
-            <Target className="w-4 h-4 text-rose-400" />
-            <span>Primary Reason for Attending</span>
+        <div className="space-y-3 pt-4 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-900 uppercase tracking-wider">
+            <Target className="w-4 h-4 text-gray-700" />
+            <span>Primary Goal for Attending</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {goalsList.map((g) => (
@@ -194,14 +194,14 @@ export const OnboardingPage: React.FC = () => {
                 key={g.label}
                 type="button"
                 onClick={() => setPrimaryGoal(g.label)}
-                className={`p-3.5 rounded-2xl border text-left transition-all space-y-1 ${
+                className={`p-3.5 rounded-lg border text-left transition-all space-y-1 ${
                   primaryGoal === g.label
-                    ? 'bg-indigo-600/25 border-indigo-500 text-white shadow-lg shadow-indigo-500/10'
-                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-800'
+                    ? 'bg-black border-black text-white'
+                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                <div className="font-bold text-xs text-indigo-300">{g.label}</div>
-                <div className="text-[11px] text-slate-400 leading-snug">{g.description}</div>
+                <div className={`font-bold text-xs ${primaryGoal === g.label ? 'text-white' : 'text-gray-900'}`}>{g.label}</div>
+                <div className={`text-[11px] ${primaryGoal === g.label ? 'text-gray-300' : 'text-gray-500'}`}>{g.description}</div>
               </button>
             ))}
           </div>
@@ -211,10 +211,10 @@ export const OnboardingPage: React.FC = () => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-4 bg-gradient-to-r from-indigo-600 to-sky-500 hover:from-indigo-500 hover:to-sky-400 text-white font-extrabold text-base rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2"
+          className="w-full py-3 bg-black hover:bg-gray-800 text-white font-bold text-sm rounded-lg shadow-sm transition-all flex items-center justify-center gap-2"
         >
           <span>{isSubmitting ? 'Saving Profile...' : 'Save Profile & Continue'}</span>
-          <ArrowRight className="w-5 h-5" />
+          <ArrowRight className="w-4 h-4" />
         </button>
       </form>
     </div>

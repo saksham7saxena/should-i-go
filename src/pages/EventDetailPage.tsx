@@ -59,8 +59,8 @@ export const EventDetailPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="py-24 text-center space-y-3">
-        <Loader2 className="w-8 h-8 text-indigo-400 animate-spin mx-auto" />
-        <p className="text-xs text-slate-400">Loading recommendation details...</p>
+        <Loader2 className="w-8 h-8 text-black animate-spin mx-auto" />
+        <p className="text-xs text-gray-500">Loading recommendation details...</p>
       </div>
     );
   }
@@ -68,11 +68,11 @@ export const EventDetailPage: React.FC = () => {
   if (!recommendation || !recommendation.event) {
     return (
       <div className="max-w-md mx-auto py-16 text-center space-y-4">
-        <h2 className="text-xl font-bold text-white">Event Not Found</h2>
-        <p className="text-xs text-slate-400">The recommendation record you requested could not be located.</p>
+        <h2 className="text-xl font-bold text-gray-900">Event Not Found</h2>
+        <p className="text-xs text-gray-500">The recommendation record requested could not be located.</p>
         <Link
           to="/events"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 text-slate-200 text-xs font-semibold rounded-xl"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white text-xs font-semibold rounded-lg"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Saved Events</span>
@@ -84,24 +84,23 @@ export const EventDetailPage: React.FC = () => {
   const event = recommendation.event;
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 space-y-8 animate-fade-in">
-      {/* Top Navigation */}
+    <div className="max-w-4xl mx-auto py-10 px-4 space-y-8 animate-fade-in text-gray-900">
+      {/* Navigation */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/events')}
-          className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white font-semibold transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-black font-semibold transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Saved Events</span>
         </button>
 
-        {/* Status Switcher */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 font-medium">Status:</span>
+          <span className="text-xs text-gray-500 font-medium">Status:</span>
           <select
             value={recommendation.status}
             onChange={(e) => handleStatusChange(e.target.value as EventStatusType)}
-            className="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-1.5 font-bold focus:outline-none cursor-pointer"
+            className="bg-gray-50 border border-gray-200 text-gray-800 text-xs rounded-md px-3 py-1 font-bold focus:outline-none focus:border-black cursor-pointer"
           >
             {(['Considering', 'Attending', 'Skipped', 'Attended'] as EventStatusType[]).map((s) => (
               <option key={s} value={s}>
@@ -113,52 +112,52 @@ export const EventDetailPage: React.FC = () => {
       </div>
 
       {/* Main Result Card */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-6 sm:p-8 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-6">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Badge decision={recommendation.decision} size="lg" />
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700">
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
                 Confidence: {recommendation.confidence}
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white pt-2 leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 pt-2 leading-tight">
               {event.title}
             </h1>
           </div>
 
-          <div className="flex sm:flex-col items-center sm:items-end justify-between bg-slate-950 px-5 py-3 rounded-2xl border border-slate-800 shrink-0">
-            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Score</span>
-            <span className="text-3xl font-black text-indigo-400 font-mono">
-              {recommendation.score}<span className="text-sm font-semibold text-slate-400">/100</span>
+          <div className="flex sm:flex-col items-center sm:items-end justify-between bg-[#f5f5f5] px-5 py-3 rounded-xl border border-gray-200 shrink-0">
+            <span className="text-xs text-gray-500 font-bold uppercase tracking-wider">Total Score</span>
+            <span className="text-3xl font-black text-black font-mono">
+              {recommendation.score}<span className="text-sm font-semibold text-gray-500">/100</span>
             </span>
           </div>
         </div>
 
         {/* Details Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-1">
-            <div className="flex items-center gap-1.5 text-slate-400 font-semibold">
-              <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+          <div className="bg-[#f5f5f5] p-3.5 rounded-lg border border-gray-200 space-y-1">
+            <div className="flex items-center gap-1.5 text-gray-500 font-semibold">
+              <Calendar className="w-3.5 h-3.5 text-gray-700" />
               <span>Date & Time</span>
             </div>
-            <div className="font-bold text-slate-200">{formatEventDate(event.start_date)}</div>
+            <div className="font-bold text-gray-900">{formatEventDate(event.start_date)}</div>
           </div>
 
-          <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-1">
-            <div className="flex items-center gap-1.5 text-slate-400 font-semibold">
-              <MapPin className="w-3.5 h-3.5 text-rose-400" />
+          <div className="bg-[#f5f5f5] p-3.5 rounded-lg border border-gray-200 space-y-1">
+            <div className="flex items-center gap-1.5 text-gray-500 font-semibold">
+              <MapPin className="w-3.5 h-3.5 text-gray-700" />
               <span>Location</span>
             </div>
-            <div className="font-bold text-slate-200">{event.location || 'Location Unspecified'}</div>
+            <div className="font-bold text-gray-900">{event.location || 'Location Unspecified'}</div>
           </div>
 
-          <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-1">
-            <div className="flex items-center gap-1.5 text-slate-400 font-semibold">
-              <Tag className="w-3.5 h-3.5 text-emerald-400" />
+          <div className="bg-[#f5f5f5] p-3.5 rounded-lg border border-gray-200 space-y-1">
+            <div className="flex items-center gap-1.5 text-gray-500 font-semibold">
+              <Tag className="w-3.5 h-3.5 text-gray-700" />
               <span>Price / Category</span>
             </div>
-            <div className="font-bold text-emerald-400">
+            <div className="font-bold text-gray-900">
               {formatEventPrice(event.price)} • {event.event_type || 'Event'}
             </div>
           </div>
@@ -168,13 +167,13 @@ export const EventDetailPage: React.FC = () => {
         {((event.topics && event.topics.length > 0) || (event.speakers_or_performers && event.speakers_or_performers.length > 0)) && (
           <div className="flex flex-wrap items-center gap-2 pt-2">
             {event.topics?.map((t) => (
-              <span key={t} className="px-2.5 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-indigo-300 text-xs font-semibold">
+              <span key={t} className="px-2.5 py-1 bg-gray-100 border border-gray-200 rounded-md text-gray-800 text-xs font-semibold">
                 #{t}
               </span>
             ))}
             {event.speakers_or_performers?.map((s) => (
-              <span key={s} className="px-2.5 py-1 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-xs flex items-center gap-1">
-                <Users className="w-3 h-3 text-slate-400" />
+              <span key={s} className="px-2.5 py-1 bg-gray-100 border border-gray-200 rounded-md text-gray-800 text-xs flex items-center gap-1">
+                <Users className="w-3 h-3 text-gray-500" />
                 <span>{s}</span>
               </span>
             ))}
@@ -183,30 +182,30 @@ export const EventDetailPage: React.FC = () => {
 
         {/* Reasons & Concerns */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-          <div className="space-y-3 bg-slate-950/50 p-5 rounded-2xl border border-slate-800">
-            <h4 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4" />
+          <div className="space-y-3 bg-[#f5f5f5] p-5 rounded-xl border border-gray-200">
+            <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>Positive Attendance Reasons</span>
             </h4>
-            <ul className="space-y-2 text-xs text-slate-300">
+            <ul className="space-y-2 text-xs text-gray-700 font-medium">
               {recommendation.reasons.map((r, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="text-emerald-400 font-bold">•</span>
+                  <span className="text-emerald-600 font-bold">•</span>
                   <span>{r}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="space-y-3 bg-slate-950/50 p-5 rounded-2xl border border-slate-800">
-            <h4 className="text-sm font-bold text-amber-400 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" />
+          <div className="space-y-3 bg-[#f5f5f5] p-5 rounded-xl border border-gray-200">
+            <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600" />
               <span>Potential Concerns</span>
             </h4>
-            <ul className="space-y-2 text-xs text-slate-300">
+            <ul className="space-y-2 text-xs text-gray-700 font-medium">
               {recommendation.concerns.map((c, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="text-amber-400 font-bold">•</span>
+                  <span className="text-amber-600 font-bold">•</span>
                   <span>{c}</span>
                 </li>
               ))}
@@ -214,13 +213,13 @@ export const EventDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Actions: Feedback Modal Trigger & Original Link */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-800">
+        {/* Bottom Actions */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-gray-100">
           <button
             onClick={() => setIsFeedbackOpen(true)}
-            className="w-full sm:w-auto px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-100 font-bold text-xs rounded-xl border border-slate-700 transition-colors flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold text-xs rounded-lg border border-gray-200 transition-colors flex items-center justify-center gap-2"
           >
-            <MessageSquare className="w-4 h-4 text-indigo-400" />
+            <MessageSquare className="w-4 h-4 text-black" />
             <span>Provide Attendance & Accuracy Feedback</span>
           </button>
 
@@ -228,7 +227,7 @@ export const EventDetailPage: React.FC = () => {
             href={event.source_url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-semibold"
+            className="inline-flex items-center gap-1.5 text-xs text-gray-900 hover:text-black font-semibold underline"
           >
             <span>Visit Event Website</span>
             <ExternalLink className="w-3.5 h-3.5" />
@@ -239,21 +238,21 @@ export const EventDetailPage: React.FC = () => {
       {/* Score Breakdown Card */}
       <ScoreCard score={recommendation.score} breakdown={recommendation.scoring_breakdown} />
 
-      {/* Raw Extracted JSON Inspector Toggle */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
+      {/* Raw Extracted JSON Inspector */}
+      <div className="bg-[#f5f5f5] border border-gray-200 rounded-xl p-4">
         <button
           onClick={() => setShowRawJson(!showRawJson)}
-          className="flex items-center justify-between w-full text-xs font-semibold text-slate-400 hover:text-slate-200"
+          className="flex items-center justify-between w-full text-xs font-semibold text-gray-600 hover:text-black"
         >
           <div className="flex items-center gap-2">
-            <Code2 className="w-4 h-4 text-sky-400" />
+            <Code2 className="w-4 h-4 text-gray-800" />
             <span>Inspect Extracted Event JSON Payload</span>
           </div>
           <span>{showRawJson ? 'Hide Payload' : 'Show Payload'}</span>
         </button>
 
         {showRawJson && (
-          <pre className="mt-3 p-4 bg-slate-950 rounded-xl text-[11px] font-mono text-slate-300 overflow-x-auto border border-slate-800">
+          <pre className="mt-3 p-4 bg-white rounded-lg text-[11px] font-mono text-gray-800 overflow-x-auto border border-gray-200">
             {JSON.stringify(event.extracted_data || event, null, 2)}
           </pre>
         )}

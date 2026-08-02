@@ -45,9 +45,11 @@ export const OnboardingPage: React.FC = () => {
         max_price: maxPrice,
       });
 
-      // Phase 10: Check pending preserved URL in sessionStorage
-      const pendingUrl = sessionStorage.getItem('pendingEventUrl');
+      // Phase 10: Check pending preserved URL in sessionStorage (supports camelCase and snake_case)
+      const pendingUrl = sessionStorage.getItem('pendingEventUrl') || sessionStorage.getItem('pending_event_url');
       if (pendingUrl) {
+        sessionStorage.removeItem('pendingEventUrl');
+        sessionStorage.removeItem('pending_event_url');
         navigate(`/analyze?url=${encodeURIComponent(pendingUrl)}`, { replace: true });
       } else {
         navigate('/', { replace: true });

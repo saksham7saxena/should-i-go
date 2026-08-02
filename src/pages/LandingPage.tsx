@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { isValidUrl } from '../lib/urlParser';
+import { isValidUrl, normalizeUrl } from '../lib/urlParser';
 import { ArrowRight, Link2, Sparkles, Target, Zap, ShieldCheck } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
@@ -21,12 +21,14 @@ export const LandingPage: React.FC = () => {
     }
     setError('');
 
-    // Requirement 1: If onboarding incomplete, preserve URL in sessionStorage
+    const normUrl = normalizeUrl(trimmed);
+
+    // Phase 10: Store pending event URL using key 'pendingEventUrl'
     if (!hasCompletedOnboarding) {
-      sessionStorage.setItem('pending_event_url', trimmed);
+      sessionStorage.setItem('pendingEventUrl', normUrl);
       navigate('/onboarding');
     } else {
-      navigate(`/analyze?url=${encodeURIComponent(trimmed)}`);
+      navigate(`/analyze?url=${encodeURIComponent(normUrl)}`);
     }
   };
 

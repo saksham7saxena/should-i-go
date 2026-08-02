@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { fetchSavedRecommendations, updateRecommendationStatus, submitFeedback } from '../lib/supabase';
-import { RecommendationRecord, EventStatusType } from '../types';
+import { fetchSavedRecommendations, setEventStatus, recordFeedback } from '../lib/supabase';
+import { RecommendationRecord, AppEventStatus } from '../types';
 import { Badge } from '../components/Badge';
 import { formatEventDate, formatEventPrice } from '../lib/urlParser';
 import { Calendar, MapPin, Loader2, BookmarkPlus, Check, Star, ArrowRight } from 'lucide-react';
@@ -32,35 +32,37 @@ export const EventsListPage: React.FC = () => {
     loadSaved();
   }, [userId]);
 
-  const handleStatusChange = async (recId: string, newStatus: EventStatusType) => {
+  const handleStatusChange = async (rec: RecommendationRecord, newStatus: AppEventStatus) => {
     setRecommendations((prev) =>
-      prev.map((r) => (r.id === recId ? { ...r, status: newStatus } : r))
+      prev.map((r) => (r.id === rec.id ? { ...r, status: newStatus } : r))
     );
-    await updateRecommendationStatus(recId, newStatus);
+    if (userId && rec.event_id) {
+      await setEventStatus(rec.event_id, rec.id, newStatus, userId);
+    }
   };
 
-  const handleInlineWorthIt = async (recId: string, worthIt: boolean | null) => {
+  const handleInlineWorthIt = async (rec: RecommendationRecord, worthIt: boolean | null) => {
     if (!userId) return;
     if (worthIt === null) {
       // "I didn't attend"
-      await submitFeedback(userId, recId, { attended: false, worth_it: false, feedback_type: 'post_event' });
-      await handleStatusChange(recId, 'Skipped');
-      setFeedbackAnswered((prev) => ({ ...prev, [recId]: { done: true } }));
+      await recordFeedback(userId, rec.id, { attended: false, worth_it: false });
+      await handleStatusChange(rec, 'skipped');
+      setFeedbackAnswered((prev) => ({ ...prev, [rec.id]: { done: true } }));
     } else {
-      await submitFeedback(userId, recId, { attended: true, worth_it: worthIt, feedback_type: 'post_event' });
-      await handleStatusChange(recId, 'Attended');
-      setFeedbackAnswered((prev) => ({ ...prev, [recId]: { worthIt, done: false } }));
+      await recordFeedback(userId, rec.id, { attended: true, worth_it: worthIt });
+      await handleStatusChange(rec, 'attended');
+      setFeedbackAnswered((prev) => ({ ...prev, [rec.id]: { worthIt, done: false } }));
     }
   };
 
   const handleRatingSubmit = async (recId: string, rating: number) => {
     if (!userId) return;
     const prevWorthIt = feedbackAnswered[recId]?.worthIt ?? true;
-    await submitFeedback(userId, recId, { attended: true, worth_it: prevWorthIt, accuracy_rating: rating, feedback_type: 'rating' });
+    await recordFeedback(userId, recId, { attended: true, worth_it: prevWorthIt, accuracy_rating: rating });
     setFeedbackAnswered((prev) => ({ ...prev, [recId]: { ...prev[recId], rating, done: true } }));
   };
 
-  const now = new Date().getTime();
+  const now = Date.now();
 
   const upcomingEvents = recommendations.filter((r) => {
     if (!r.event?.start_date) return true;
@@ -78,25 +80,26 @@ export const EventsListPage: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-4 space-y-8 animate-fade-in text-[#0c0a09]">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e7e5e4] pb-6">
         <div>
           <h1 className="text-3xl font-serif text-[#0c0a09]">Saved Events</h1>
-          <p className="text-xs text-[#777169] mt-1">Manage your event decisions and log post-event feedback.</p>
+          <p className="text-xs text-[#777169] mt-1">Manage your saved recommendations and log post-event feedback.</p>
         </div>
 
         <Link
           to="/"
-          className="px-5 py-2.5 bg-[#0c0a09] hover:bg-[#292524] text-white font-semibold text-xs rounded-full shadow-xs transition-all flex items-center justify-center gap-2 shrink-0"
+          className="px-5 py-2.5 bg-[#0c0a09] hover:bg-[#292524] text-[#ffffff] font-semibold text-xs rounded-full shadow-xs transition-all flex items-center justify-center gap-2 shrink-0"
         >
           <span>Check an event</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
 
-      {/* Category Tabs: Upcoming vs Past */}
+      {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-[#e7e5e4] pb-2">
         <button
+          type="button"
+          aria-pressed={activeTab === 'UPCOMING'}
           onClick={() => setActiveTab('UPCOMING')}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
             activeTab === 'UPCOMING'
@@ -108,6 +111,8 @@ export const EventsListPage: React.FC = () => {
         </button>
 
         <button
+          type="button"
+          aria-pressed={activeTab === 'PAST'}
           onClick={() => setActiveTab('PAST')}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
             activeTab === 'PAST'
@@ -119,7 +124,6 @@ export const EventsListPage: React.FC = () => {
         </button>
       </div>
 
-      {/* List Grid */}
       {isLoading ? (
         <div className="py-16 text-center space-y-3">
           <Loader2 className="w-8 h-8 text-[#0c0a09] animate-spin mx-auto" />
@@ -131,7 +135,7 @@ export const EventsListPage: React.FC = () => {
             <BookmarkPlus className="w-6 h-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-serif text-[#0c0a09]">No {activeTab.toLowerCase()} saved events</h3>
+            <h2 className="text-base font-serif text-[#0c0a09]">No {activeTab.toLowerCase()} saved events</h2>
             <p className="text-xs text-[#777169]">
               {activeTab === 'UPCOMING'
                 ? "You haven't saved any upcoming event recommendations yet."
@@ -142,7 +146,7 @@ export const EventsListPage: React.FC = () => {
             to="/"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0c0a09] hover:bg-[#292524] text-white font-semibold text-xs rounded-full transition-all"
           >
-            <span>Analyze an event</span>
+            <span>Paste an event</span>
           </Link>
         </div>
       ) : (
@@ -159,7 +163,6 @@ export const EventsListPage: React.FC = () => {
                 className="bg-white border border-[#e7e5e4] hover:border-[#d6d3d1] rounded-2xl p-6 transition-all shadow-xs flex flex-col justify-between space-y-4"
               >
                 <div className="space-y-3">
-                  {/* Top Bar: Badge, Score, Status */}
                   <div className="flex items-center justify-between gap-3">
                     <Badge decision={rec.decision} size="sm" />
 
@@ -168,28 +171,26 @@ export const EventsListPage: React.FC = () => {
                         {rec.score}/100
                       </span>
 
-                      {/* Direct Status Switcher */}
                       <select
-                        value={rec.status}
-                        onChange={(e) => handleStatusChange(rec.id, e.target.value as EventStatusType)}
+                        aria-label="Event Status"
+                        value={rec.status || 'considering'}
+                        onChange={(e) => handleStatusChange(rec, e.target.value as AppEventStatus)}
                         className="bg-[#f5f5f5] text-[#0c0a09] text-xs rounded-full border border-[#e7e5e4] px-3 py-1 font-semibold focus:outline-none focus:border-[#0c0a09] cursor-pointer"
                       >
-                        <option value="Considering">Considering</option>
-                        <option value="Attending">Going</option>
-                        <option value="Attended">Attended</option>
-                        <option value="Skipped">Skipped</option>
+                        <option value="considering">Considering</option>
+                        <option value="going">Going</option>
+                        <option value="attended">Attended</option>
+                        <option value="skipped">Skipped</option>
                       </select>
                     </div>
                   </div>
 
-                  {/* Title */}
                   <Link to={`/events/${rec.id}`} className="block group">
                     <h3 className="font-serif text-lg text-[#0c0a09] group-hover:underline leading-snug">
                       {event.title}
                     </h3>
                   </Link>
 
-                  {/* Details */}
                   <div className="flex flex-wrap items-center gap-3 text-xs text-[#777169]">
                     <div className="flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#0c0a09]" />
@@ -202,13 +203,12 @@ export const EventsListPage: React.FC = () => {
                     <span className="font-bold text-[#0c0a09] ml-auto">{formatEventPrice(event.price)}</span>
                   </div>
 
-                  {/* Summary */}
                   <p className="text-xs text-[#4e4e4e] bg-[#f5f5f5] p-3 rounded-xl border border-[#e7e5e4] line-clamp-2">
                     "{rec.bottom_line || rec.reasons[0] || 'Good alignment with your goals.'}"
                   </p>
                 </div>
 
-                {/* IN-LINE PAST EVENT FEEDBACK PROMPT (Requirement 10) */}
+                {/* Inline Post-Event Feedback */}
                 {activeTab === 'PAST' && (
                   <div className="pt-3 border-t border-[#e7e5e4] space-y-3">
                     {!fbState ? (
@@ -218,19 +218,22 @@ export const EventsListPage: React.FC = () => {
                         </span>
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleInlineWorthIt(rec.id, true)}
+                            type="button"
+                            onClick={() => handleInlineWorthIt(rec, true)}
                             className="px-3 py-1 bg-black text-white text-xs font-semibold rounded-full hover:bg-stone-800"
                           >
                             Yes
                           </button>
                           <button
-                            onClick={() => handleInlineWorthIt(rec.id, false)}
+                            type="button"
+                            onClick={() => handleInlineWorthIt(rec, false)}
                             className="px-3 py-1 bg-white border border-[#e7e5e4] text-[#0c0a09] text-xs font-semibold rounded-full hover:bg-gray-50"
                           >
                             No
                           </button>
                           <button
-                            onClick={() => handleInlineWorthIt(rec.id, null)}
+                            type="button"
+                            onClick={() => handleInlineWorthIt(rec, null)}
                             className="px-3 py-1 text-xs text-[#777169] hover:text-[#0c0a09] ml-auto"
                           >
                             I didn’t attend
@@ -246,6 +249,8 @@ export const EventsListPage: React.FC = () => {
                           {[1, 2, 3, 4, 5].map((star) => (
                             <button
                               key={star}
+                              type="button"
+                              aria-label={`${star} out of 5 stars`}
                               onClick={() => handleRatingSubmit(rec.id, star)}
                               className="p-1 hover:scale-125 transition-transform"
                             >

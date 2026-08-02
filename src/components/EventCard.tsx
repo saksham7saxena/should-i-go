@@ -1,77 +1,72 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { RecommendationRecord, EventStatusType } from '../types';
+import { RecommendationRecord, AppEventStatus } from '../types';
 import { Badge } from './Badge';
 import { formatEventDate, formatEventPrice } from '../lib/urlParser';
 import { Calendar, MapPin, ArrowRight } from 'lucide-react';
 
 interface EventCardProps {
   recommendation: RecommendationRecord;
-  onStatusChange?: (recId: string, newStatus: EventStatusType) => void;
+  onStatusChange?: (recId: string, newStatus: AppEventStatus) => void;
 }
 
 export const EventCard: React.FC<EventCardProps> = ({ recommendation, onStatusChange }) => {
   const event = recommendation.event;
   if (!event) return null;
 
-  const statuses: EventStatusType[] = ['Considering', 'Attending', 'Skipped', 'Attended'];
+  const statuses: AppEventStatus[] = ['considering', 'going', 'attended', 'skipped', 'dismissed'];
 
   return (
-    <div className="bg-white border border-gray-200 hover:border-gray-300 rounded-xl p-5 transition-all shadow-sm hover:shadow-md flex flex-col justify-between group">
+    <div className="bg-white border border-[#e7e5e4] hover:border-[#d6d3d1] rounded-2xl p-5 transition-all shadow-xs flex flex-col justify-between group">
       <div>
-        {/* Header: Badge & Score */}
         <div className="flex items-center justify-between gap-3 mb-3">
           <Badge decision={recommendation.decision} size="sm" />
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-500 font-medium">Score</span>
-            <span className="font-mono text-xs font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+            <span className="text-xs text-[#777169] font-medium">Score</span>
+            <span className="font-mono text-xs font-bold text-[#0c0a09] bg-[#f5f5f5] px-2 py-0.5 rounded-full border border-[#e7e5e4]">
               {recommendation.score}/100
             </span>
           </div>
         </div>
 
-        {/* Title */}
-        <h3 className="font-bold text-base text-gray-900 group-hover:text-black transition-colors line-clamp-2 mb-2">
+        <h3 className="font-serif font-bold text-base text-[#0c0a09] group-hover:underline leading-snug mb-2">
           {event.title}
         </h3>
 
-        {/* Event Details */}
-        <div className="space-y-1.5 text-xs text-gray-600 mb-4">
+        <div className="space-y-1.5 text-xs text-[#777169] mb-4">
           <div className="flex items-center gap-1.5">
-            <Calendar className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+            <Calendar className="w-3.5 h-3.5 text-[#0c0a09] shrink-0" />
             <span className="truncate">{formatEventDate(event.start_date)}</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-            <span className="truncate">{event.location || 'Location TBA'}</span>
-            <span className="text-gray-300">•</span>
-            <span className="font-semibold text-emerald-700">{formatEventPrice(event.price)}</span>
+            <MapPin className="w-3.5 h-3.5 text-[#0c0a09] shrink-0" />
+            <span className="truncate">{event.location || 'Location unlisted'}</span>
+            <span>•</span>
+            <span className="font-semibold text-emerald-800">{formatEventPrice(event.price)}</span>
           </div>
         </div>
 
-        {/* Reason snippet */}
-        <p className="text-xs text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100 mb-4 line-clamp-2">
-          "{recommendation.reasons[0] || 'Good alignment with your goals.'}"
+        <p className="text-xs text-[#4e4e4e] bg-[#f5f5f5] p-3 rounded-xl border border-[#e7e5e4] mb-4 line-clamp-2">
+          "{recommendation.bottom_line || recommendation.reasons[0] || 'Good alignment with your goals.'}"
         </p>
       </div>
 
-      {/* Footer Controls */}
-      <div className="pt-3 border-t border-gray-100 flex items-center justify-between gap-2">
+      <div className="pt-3 border-t border-[#e7e5e4] flex items-center justify-between gap-2">
         <select
-          value={recommendation.status}
-          onChange={(e) => onStatusChange?.(recommendation.id, e.target.value as EventStatusType)}
-          className="bg-gray-50 text-gray-800 text-xs rounded-md border border-gray-200 px-2.5 py-1 font-medium focus:outline-none focus:border-black cursor-pointer"
+          value={recommendation.status || 'considering'}
+          onChange={(e) => onStatusChange?.(recommendation.id, e.target.value as AppEventStatus)}
+          className="bg-[#f5f5f5] text-[#0c0a09] text-xs rounded-full border border-[#e7e5e4] px-3 py-1 font-semibold focus:outline-none focus:border-[#0c0a09] cursor-pointer"
         >
           {statuses.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {s.charAt(0).toUpperCase() + s.slice(1)}
             </option>
           ))}
         </select>
 
         <Link
           to={`/events/${recommendation.id}`}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-gray-900 hover:text-black transition-colors"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-[#0c0a09] hover:underline transition-colors"
         >
           <span>View Details</span>
           <ArrowRight className="w-3.5 h-3.5" />

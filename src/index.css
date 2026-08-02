@@ -20,6 +20,23 @@
     font-weight: 500;
     @apply text-[#0c0a09];
   }
+
+  /* Phase 22: Accessible Focus-Visible Styling */
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+}
+
+/* Phase 22: Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @keyframes fadeIn {

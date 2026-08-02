@@ -8,7 +8,7 @@ export const EvalsPage: React.FC = () => {
   const [results, setResults] = useState<EvalRunResult[]>([]);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
-  const [promptVersion] = useState<string>('v2.0.0');
+  const [promptVersion] = useState<string>('v3.0.0');
 
   const runEvaluation = async () => {
     setIsRunning(true);
@@ -23,12 +23,8 @@ export const EvalsPage: React.FC = () => {
       const start = Date.now();
 
       try {
-        const { data, latencyMs } = await extractEventFromUrl({
-          url: item.url,
-          mockHtml: item.mockHtml,
-        });
+        const { data, latencyMs } = await extractEventFromUrl(item.url);
 
-        // Strict comparison checks
         const titleMatch = Boolean(
           data.title &&
           (data.title.toLowerCase().includes(item.expected.title.toLowerCase()) ||
@@ -119,7 +115,6 @@ export const EvalsPage: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto py-10 px-4 space-y-8 animate-fade-in text-[#0c0a09]">
-      {/* Header */}
       <div className="bg-white border border-[#e7e5e4] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e7e5e4] pb-6">
           <div>
@@ -157,7 +152,6 @@ export const EvalsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Dashboard Aggregate Stats */}
         {results.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             <div className="bg-[#f5f5f5] p-4 rounded-xl border border-[#e7e5e4] space-y-1">
@@ -190,7 +184,6 @@ export const EvalsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Dataset Results Table */}
       {results.length > 0 && (
         <div className="bg-white border border-[#e7e5e4] rounded-2xl p-6 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-[#0c0a09]">Evaluation Fixtures Benchmark (15 Items)</h3>

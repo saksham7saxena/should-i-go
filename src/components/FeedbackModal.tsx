@@ -1,49 +1,62 @@
-import React, { useState } from 'react';
-import { Star, X, Check, MessageSquare } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { submitFeedback } from '../lib/supabase';
+import React, { useState, useEffect, useRef } from 'react';
+import { Star, X, Check } from 'lucide-react';
+import { recordFeedback } from '../lib/supabase';
 
 interface FeedbackModalProps {
   isOpen: boolean;
   onClose: () => void;
+  userId: string;
   recommendationId: string;
-  onSubmitted?: () => void;
+  eventTitle: string;
 }
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   isOpen,
   onClose,
+  userId,
   recommendationId,
-  onSubmitted,
+  eventTitle,
 }) => {
-  const { userId } = useAuth();
-  const [attended, setAttended] = useState<boolean>(true);
-  const [worthIt, setWorthIt] = useState<boolean>(true);
-  const [accuracyRating, setAccuracyRating] = useState<number>(5);
+  const [attended, setAttended] = useState<boolean | null>(null);
+  const [worthIt, setWorthIt] = useState<boolean | null>(null);
+  const [rating, setRating] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [isDone, setIsDone] = useState<boolean>(false);
+
+  const modalRef = useRef<HTMLDivElement>(null);
+  const firstInputRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      setTimeout(() => firstInputRef.current?.focus(), 50);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userId) return;
-
     setIsSubmitting(true);
     try {
-      await submitFeedback(userId, recommendationId, {
-        attended,
-        worth_it: worthIt,
-        accuracy_rating: accuracyRating,
+      await recordFeedback(userId, recommendationId, {
+        attended: attended ?? undefined,
+        worth_it: worthIt ?? undefined,
+        accuracy_rating: rating > 0 ? rating : undefined,
         notes: notes.trim() || undefined,
       });
-      setIsDone(true);
+      setIsSubmitted(true);
       setTimeout(() => {
-        onSubmitted?.();
+        setIsSubmitted(false);
         onClose();
-        setIsDone(false);
-      }, 1200);
+      }, 1500);
     } catch (err) {
       console.error('Error submitting feedback:', err);
     } finally {
@@ -52,109 +65,122 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white border border-gray-200 rounded-xl max-w-md w-full p-6 shadow-xl relative text-gray-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fade-in">
+      <div
+        ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="feedback-title"
+        className="bg-white border border-[#e7e5e4] rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-lg space-y-6 relative text-[#0c0a09]"
+      >
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-900 p-1 rounded-md hover:bg-gray-100 transition-colors"
+          aria-label="Close modal"
+          className="absolute top-4 right-4 text-[#777169] hover:text-[#0c0a09] p-1 rounded-full hover:bg-[#f5f5f5]"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        {isDone ? (
+        {isSubmitted ? (
           <div className="py-8 text-center space-y-3">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-200">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto">
               <Check className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-gray-900">Thank You for Your Feedback!</h3>
-            <p className="text-xs text-gray-500">Your rating helps refine decision evaluation accuracy.</p>
+            <h3 className="text-lg font-serif text-[#0c0a09]">Thank you for your feedback!</h3>
+            <p className="text-xs text-[#777169]">Your input helps improve future recommendations.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <MessageSquare className="w-5 h-5 text-black" />
-                Event & Recommendation Feedback
-              </h3>
-              <p className="text-xs text-gray-500 mt-1">Help us measure decision accuracy.</p>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-1">
+              <h2 id="feedback-title" className="text-xl font-serif text-[#0c0a09]">
+                Post-Event Feedback
+              </h2>
+              <p className="text-xs text-[#777169]">
+                How was <span className="font-semibold text-[#0c0a09]">{eventTitle}</span>?
+              </p>
             </div>
 
-            {/* Did you attend? */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-gray-700">Did you attend this event?</label>
-              <div className="grid grid-cols-2 gap-3">
+              <label className="text-xs font-bold text-[#0c0a09] block">Did you end up going?</label>
+              <div className="flex items-center gap-2">
                 <button
+                  ref={firstInputRef}
                   type="button"
+                  aria-pressed={attended === true}
                   onClick={() => setAttended(true)}
-                  className={`py-2 px-4 rounded-lg border text-xs font-semibold transition-all ${
-                    attended
-                      ? 'bg-black text-white border-black shadow-sm'
-                      : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                  className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
+                    attended === true
+                      ? 'bg-[#0c0a09] text-white border-[#0c0a09]'
+                      : 'bg-[#f5f5f5] text-[#4e4e4e] border-[#e7e5e4]'
                   }`}
                 >
-                  Yes, Attended
+                  Yes, I went
                 </button>
                 <button
                   type="button"
-                  onClick={() => setAttended(false)}
-                  className={`py-2 px-4 rounded-lg border text-xs font-semibold transition-all ${
-                    !attended
-                      ? 'bg-rose-50 border-rose-200 text-rose-700'
-                      : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                  aria-pressed={attended === false}
+                  onClick={() => {
+                    setAttended(false);
+                    setWorthIt(null);
+                  }}
+                  className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
+                    attended === false
+                      ? 'bg-[#0c0a09] text-white border-[#0c0a09]'
+                      : 'bg-[#f5f5f5] text-[#4e4e4e] border-[#e7e5e4]'
                   }`}
                 >
-                  No, Skipped
+                  No, I skipped
                 </button>
               </div>
             </div>
 
-            {/* Was it worth it? */}
             {attended && (
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-gray-700">Was the event worth your time & money?</label>
-                <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2 animate-fade-in">
+                <label className="text-xs font-bold text-[#0c0a09] block">Was it worth attending?</label>
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    aria-pressed={worthIt === true}
                     onClick={() => setWorthIt(true)}
-                    className={`py-2 px-4 rounded-lg border text-xs font-semibold transition-all ${
-                      worthIt
-                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800 font-bold'
-                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                    className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
+                      worthIt === true
+                        ? 'bg-[#0c0a09] text-white border-[#0c0a09]'
+                        : 'bg-[#f5f5f5] text-[#4e4e4e] border-[#e7e5e4]'
                     }`}
                   >
-                    Yes, Worth It
+                    Yes, worth it
                   </button>
                   <button
                     type="button"
+                    aria-pressed={worthIt === false}
                     onClick={() => setWorthIt(false)}
-                    className={`py-2 px-4 rounded-lg border text-xs font-semibold transition-all ${
-                      !worthIt
-                        ? 'bg-amber-50 border-amber-300 text-amber-800 font-bold'
-                        : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                    className={`px-4 py-2 text-xs font-semibold rounded-full border transition-all ${
+                      worthIt === false
+                        ? 'bg-[#0c0a09] text-white border-[#0c0a09]'
+                        : 'bg-[#f5f5f5] text-[#4e4e4e] border-[#e7e5e4]'
                     }`}
                   >
-                    Not Worth It
+                    Not worth it
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Accuracy Rating */}
             <div className="space-y-2">
-              <label className="text-xs font-semibold text-gray-700">Recommendation Accuracy (1–5)</label>
-              <div className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <label className="text-xs font-bold text-[#0c0a09] block">Recommendation Accuracy (1–5)</label>
+              <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
                     type="button"
-                    onClick={() => setAccuracyRating(star)}
-                    className="p-1 transition-transform hover:scale-125 focus:outline-none"
+                    aria-label={`${star} out of 5 stars`}
+                    aria-pressed={rating === star}
+                    onClick={() => setRating(star)}
+                    className="p-1 hover:scale-125 transition-transform"
                   >
                     <Star
                       className={`w-6 h-6 ${
-                        star <= accuracyRating
-                          ? 'fill-amber-400 text-amber-500'
-                          : 'text-gray-300 hover:text-gray-400'
+                        star <= rating ? 'fill-amber-400 text-amber-500' : 'text-[#d6d3d1]'
                       }`}
                     />
                   </button>
@@ -162,26 +188,35 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({
               </div>
             </div>
 
-            {/* Optional Notes */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-gray-700">Optional Notes</label>
+            <div className="space-y-1">
+              <label htmlFor="modal-notes" className="text-xs font-bold text-[#0c0a09] block">Short Notes (Optional)</label>
               <textarea
+                id="modal-notes"
+                rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="What made this recommendation accurate or inaccurate?"
-                rows={3}
-                className="w-full bg-white border border-gray-200 rounded-lg p-3 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-black"
+                placeholder="Any takeaways or reflections..."
+                className="w-full bg-[#f5f5f5] border border-[#e7e5e4] rounded-lg px-3 py-2 text-xs text-[#0c0a09] focus:outline-none focus:border-[#0c0a09]"
               />
             </div>
 
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full py-2.5 bg-black hover:bg-gray-800 text-white font-bold rounded-lg shadow-sm transition-all text-xs"
-            >
-              {isSubmitting ? 'Saving Feedback...' : 'Submit Feedback'}
-            </button>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#e7e5e4]">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-xs text-[#777169] hover:text-[#0c0a09]"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2.5 bg-[#0c0a09] hover:bg-[#292524] text-white font-semibold text-xs rounded-full shadow-xs transition-all"
+              >
+                {isSubmitting ? 'Saving...' : 'Submit Feedback'}
+              </button>
+            </div>
           </form>
         )}
       </div>

@@ -26,7 +26,11 @@ export function App() {
               <Route path="/events" element={<EventsListPage />} />
               <Route path="/events/:id" element={<EventDetailPage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/evals" element={<EvalsPage />} />
+              
+              {/* Phase 20: Evals page is strictly developer-only and hidden in production */}
+              {import.meta.env.DEV && (
+                <Route path="/evals" element={<EvalsPage />} />
+              )}
             </Routes>
           </main>
           <Footer />

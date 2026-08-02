@@ -24,8 +24,9 @@ export const InterestChip: React.FC<InterestChipProps> = ({ label, isSelected, o
   return (
     <button
       type="button"
+      aria-pressed={isSelected}
       onClick={() => onToggle(label)}
-      className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all flex items-center gap-2 select-none ${
+      className={`px-4 py-2 rounded-full text-xs font-semibold border transition-all flex items-center gap-2 select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0c0a09] ${
         isSelected
           ? 'bg-[#0c0a09] border-[#0c0a09] text-white shadow-xs'
           : 'bg-white border-[#e7e5e4] text-[#4e4e4e] hover:bg-[#fafafa] hover:border-[#d6d3d1]'

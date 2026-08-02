@@ -1,4 +1,4 @@
-// Core Type Definitions for Should I Go? V2
+// Complete Type Definitions for Should I Go? V3
 
 export type InterestType =
   | 'AI'
@@ -22,7 +22,7 @@ export type PreferredDayType = 'Weekday' | 'Weekend';
 export type PreferredTimeType = 'Morning' | 'Afternoon' | 'Evening';
 
 export type DecisionType = 'Go' | 'Maybe' | 'Skip';
-export type EventStatusType = 'Considering' | 'Attending' | 'Skipped' | 'Attended';
+export type AppEventStatus = 'considering' | 'going' | 'attended' | 'skipped' | 'dismissed';
 
 export interface UserPreferences {
   id?: string;
@@ -38,19 +38,20 @@ export interface UserPreferences {
 
 export interface ExtractedEventData {
   title: string;
-  description: string;
+  description: string | null;
   startDate: string | null;
   location: string | null;
   price: number | null;
-  eventType: string;
+  currency?: string | null;
+  eventType: string | null;
   topics: string[];
   likelyAudience: string[];
   speakersOrPerformers: string[];
   sourceUrl: string;
   normalizedSourceUrl?: string;
   missingInformation: string[];
-  isOnline?: boolean;
-  extractionConfidence?: number; // 0.0 to 1.0
+  isOnline?: boolean | null;
+  extractionConfidence?: number;
   isManuallyEdited?: boolean;
 }
 
@@ -70,6 +71,8 @@ export interface ScoringResult {
   reasons: string[];
   concerns: string[];
   confidence: 'High' | 'Medium' | 'Low';
+  extractionConfidence: number;
+  decisionConfidence: number;
   scoringBreakdown: ScoreBreakdown;
   strongestReason: string;
   eventGoal: PrimaryGoalType;
@@ -79,7 +82,7 @@ export interface EventRecord {
   id: string;
   user_id: string;
   source_url: string;
-  normalized_source_url?: string;
+  normalized_source_url: string;
   title: string;
   description: string | null;
   start_date: string | null;
@@ -90,9 +93,12 @@ export interface EventRecord {
   likely_audience: string[];
   speakers_or_performers: string[];
   extracted_data: ExtractedEventData;
-  is_manually_edited?: boolean;
+  is_manually_edited: boolean;
+  status: AppEventStatus | null;
+  extraction_status: string;
+  extraction_confidence: number;
   created_at: string;
-  updated_at?: string;
+  updated_at: string;
 }
 
 export interface RecommendationRecord {
@@ -101,17 +107,18 @@ export interface RecommendationRecord {
   event_id: string;
   score: number;
   decision: DecisionType;
-  bottom_line?: string;
+  bottom_line: string;
   reasons: string[];
   concerns: string[];
   confidence: 'High' | 'Medium' | 'Low';
+  extraction_confidence: number;
+  decision_confidence: number;
   scoring_breakdown: ScoreBreakdown;
-  event_goal?: PrimaryGoalType;
+  event_goal: PrimaryGoalType;
   prompt_version: string;
-  status: EventStatusType;
-  source_type?: 'url' | 'manual';
+  status: AppEventStatus | null;
   created_at: string;
-  updated_at?: string;
+  updated_at: string;
   event?: EventRecord;
 }
 
@@ -119,16 +126,49 @@ export interface FeedbackRecord {
   id?: string;
   user_id?: string;
   recommendation_id: string;
-  attended?: boolean;
-  worth_it?: boolean;
-  accuracy_rating?: number; // 1-5
-  notes?: string;
+  attended?: boolean | null;
+  worth_it?: boolean | null;
+  accuracy_rating?: number | null;
+  notes?: string | null;
   feedback_type?: 'post_event' | 'dismissal' | 'rating';
   dismissed?: boolean;
-  dismissal_reason?: string;
+  dismissal_reason?: string | null;
   created_at?: string;
   updated_at?: string;
 }
+
+export type ExtractionErrorCode =
+  | 'INVALID_URL'
+  | 'UNSUPPORTED_PROTOCOL'
+  | 'PRIVATE_NETWORK_URL'
+  | 'FETCH_TIMEOUT'
+  | 'FETCH_FAILED'
+  | 'TOO_MANY_REDIRECTS'
+  | 'RESPONSE_TOO_LARGE'
+  | 'UNSUPPORTED_CONTENT_TYPE'
+  | 'MODEL_TIMEOUT'
+  | 'INVALID_MODEL_OUTPUT'
+  | 'RATE_LIMITED'
+  | 'UNAUTHENTICATED';
+
+export type AnalysisStage =
+  | { type: 'idle' }
+  | { type: 'extracting'; url: string }
+  | { type: 'manual-entry'; url: string; reason: ExtractionErrorCode }
+  | { type: 'reviewing'; draft: ExtractedEventData }
+  | { type: 'choosing-goal'; event: ExtractedEventData }
+  | {
+      type: 'result';
+      event: ExtractedEventData;
+      recommendation: ScoringResult;
+      eventId?: string;
+      recommendationId?: string;
+    }
+  | {
+      type: 'error';
+      message: string;
+      requestId?: string;
+    };
 
 export interface EvalTestItem {
   id: string;
@@ -159,6 +199,6 @@ export interface EvalRunResult {
     location: boolean;
     eventType: boolean;
   };
-  missingFieldRate: number; // percentage
+  missingFieldRate: number;
   errorMessage?: string;
 }

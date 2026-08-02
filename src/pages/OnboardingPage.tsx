@@ -14,9 +14,11 @@ export const OnboardingPage: React.FC = () => {
     preferences?.interests || ['AI', 'Startups', 'Technology']
   );
   const [maxPrice, setMaxPrice] = useState<number>(preferences?.max_price ?? 100);
+  const [interestError, setInterestError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleInterest = (interest: InterestType) => {
+    setInterestError(null);
     setInterests((prev) =>
       prev.includes(interest) ? prev.filter((i) => i !== interest) : [...prev, interest]
     );
@@ -26,7 +28,7 @@ export const OnboardingPage: React.FC = () => {
     e.preventDefault();
     if (step === 1) {
       if (interests.length === 0) {
-        alert('Please select at least one interest.');
+        setInterestError('Choose at least one interest.');
         return;
       }
       setStep(2);
@@ -43,13 +45,12 @@ export const OnboardingPage: React.FC = () => {
         max_price: maxPrice,
       });
 
-      // Requirement 1: Retrieve preserved event URL from sessionStorage
-      const pendingUrl = sessionStorage.getItem('pending_event_url');
+      // Phase 10: Check pending preserved URL in sessionStorage
+      const pendingUrl = sessionStorage.getItem('pendingEventUrl');
       if (pendingUrl) {
-        sessionStorage.removeItem('pending_event_url');
-        navigate(`/analyze?url=${encodeURIComponent(pendingUrl)}`);
+        navigate(`/analyze?url=${encodeURIComponent(pendingUrl)}`, { replace: true });
       } else {
-        navigate('/');
+        navigate('/', { replace: true });
       }
     } catch (err) {
       console.error('Error completing onboarding:', err);
@@ -60,7 +61,6 @@ export const OnboardingPage: React.FC = () => {
 
   return (
     <div className="max-w-xl mx-auto py-12 px-4 space-y-8 animate-fade-in text-[#0c0a09]">
-      {/* Step Header */}
       <div className="text-center space-y-3">
         <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#f0efed] border border-[#e7e5e4] text-[#0c0a09] text-xs font-semibold uppercase tracking-wider">
           <span>Step {step} of 2</span>
@@ -78,10 +78,19 @@ export const OnboardingPage: React.FC = () => {
       <form onSubmit={handleNextStep} className="bg-white border border-[#e7e5e4] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
         {step === 1 ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#0c0a09] uppercase tracking-wider">
-              <Sparkles className="w-4 h-4 text-[#0c0a09]" />
-              <span>Interests</span>
+            <div className="flex items-center justify-between text-xs font-semibold text-[#0c0a09] uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#0c0a09]" />
+                <span>Target Interests</span>
+              </div>
             </div>
+
+            {interestError && (
+              <p id="interest-error" role="alert" className="text-xs text-rose-700 font-semibold">
+                {interestError}
+              </p>
+            )}
+
             <div className="flex flex-wrap gap-2.5">
               {ALL_INTERESTS.map((item) => (
                 <InterestChip
@@ -112,6 +121,7 @@ export const OnboardingPage: React.FC = () => {
               step={10}
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
+              aria-label="Maximum Ticket Price Slider"
               className="w-full h-2 bg-[#f0efed] rounded-lg appearance-none cursor-pointer accent-[#0c0a09]"
             />
             <div className="flex justify-between text-[11px] text-[#777169] font-mono">
@@ -123,7 +133,6 @@ export const OnboardingPage: React.FC = () => {
           </div>
         )}
 
-        {/* Navigation Buttons */}
         <div className="flex items-center justify-between pt-4 border-t border-[#e7e5e4] gap-3">
           {step === 2 ? (
             <button

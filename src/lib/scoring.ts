@@ -1,11 +1,11 @@
-// Deterministic TypeScript Scoring Engine V2 for "Should I Go?"
+// Deterministic TypeScript Scoring Engine V3 for "Should I Go?"
 
 import { ExtractedEventData, ScoringResult, ScoreBreakdown, UserPreferences, PrimaryGoalType, DecisionType } from '../types';
 
 export function calculateRecommendation(
   event: ExtractedEventData,
   preferences: UserPreferences,
-  eventGoal: PrimaryGoalType = 'Learn something'
+  eventGoal: PrimaryGoalType
 ): ScoringResult {
   // 1. Interest Match Score (Max 35 points)
   let interestMatchScore = 0;
@@ -13,40 +13,38 @@ export function calculateRecommendation(
   const eventTopicsLower = (event.topics || []).map((t) => t.toLowerCase());
   const eventTypeLower = (event.eventType || '').toLowerCase();
 
-  let matchedCount = 0;
   const matchedTopicsList: string[] = [];
 
-  userInterestsLower.forEach((userInterest) => {
-    const matchedInTopics = eventTopicsLower.some(
-      (topic) => topic.includes(userInterest) || userInterest.includes(topic)
-    );
-    const matchedInType = eventTypeLower.includes(userInterest);
+  if (eventTopicsLower.length > 0 && userInterestsLower.length > 0) {
+    userInterestsLower.forEach((userInterest) => {
+      const matchedInTopics = eventTopicsLower.some(
+        (topic) => topic.includes(userInterest) || userInterest.includes(topic)
+      );
+      const matchedInType = eventTypeLower.includes(userInterest);
 
-    if (matchedInTopics || matchedInType) {
-      matchedCount++;
-      matchedTopicsList.push(userInterest);
-    }
-  });
+      if (matchedInTopics || matchedInType) {
+        matchedTopicsList.push(userInterest);
+      }
+    });
 
-  if (userInterestsLower.length > 0) {
-    const ratio = matchedCount / Math.min(userInterestsLower.length, 3);
+    const ratio = matchedTopicsList.length / Math.min(userInterestsLower.length, 3);
     interestMatchScore = Math.min(35, Math.round(ratio * 35));
   } else {
-    interestMatchScore = 15;
+    interestMatchScore = 0; // Empty topics = 0 interest match points!
   }
 
   // 2. Per-Event Goal Match Score (Max 25 points)
-  let goalMatchScore = 12;
+  let goalMatchScore = 10;
   const descLower = (event.description || '').toLowerCase();
 
   if (eventGoal === 'Learn something') {
-    const learnKeywords = ['workshop', 'conference', 'talk', 'keynote', 'masterclass', 'panel', 'lecture', 'ai', 'tech', 'design', 'learn'];
+    const learnKeywords = ['workshop', 'conference', 'talk', 'keynote', 'masterclass', 'panel', 'lecture', 'learn', 'ai', 'tech', 'design'];
     const isLearnMatch = learnKeywords.some(
       (kw) => descLower.includes(kw) || eventTypeLower.includes(kw) || eventTopicsLower.some((t) => t.includes(kw))
     );
     goalMatchScore = isLearnMatch ? 25 : 10;
   } else if (eventGoal === 'Meet people') {
-    const meetKeywords = ['networking', 'meetup', 'mixer', 'community', 'gathering', 'party', 'social'];
+    const meetKeywords = ['networking', 'meetup', 'mixer', 'community', 'gathering', 'party', 'social', 'founders'];
     const isMeetMatch = meetKeywords.some(
       (kw) => descLower.includes(kw) || eventTypeLower.includes(kw) || eventTopicsLower.some((t) => t.includes(kw))
     );
@@ -59,37 +57,34 @@ export function calculateRecommendation(
     goalMatchScore = isFunMatch ? 25 : 10;
   } else if (eventGoal === 'Try something new') {
     const uniqueTopics = eventTopicsLower.filter((t) => !userInterestsLower.includes(t));
-    goalMatchScore = uniqueTopics.length > 0 ? 25 : 14;
+    goalMatchScore = uniqueTopics.length > 0 ? 25 : 12;
   }
 
   // 3. Price Fit Score (Max 20 points)
-  // Strict rule: Unknown price must NOT be treated as free or scored positively!
+  // Strict rule: Unknown price -> 0 price points!
   let priceFitScore = 0;
-  let priceUncertain = false;
+  const isUnknownPrice = event.price === null || event.price === undefined;
+  const isHardBudgetViolation = event.price !== null && event.price !== undefined && event.price > preferences.max_price;
 
-  if (event.price === null || event.price === undefined) {
-    priceFitScore = 5; // Reduced baseline for unlisted price
-    priceUncertain = true;
+  if (isUnknownPrice) {
+    priceFitScore = 0;
   } else if (event.price === 0) {
-    priceFitScore = 20; // Free event is perfect fit
-  } else if (event.price <= preferences.max_price) {
+    priceFitScore = 20;
+  } else if (event.price !== null && event.price !== undefined && event.price <= preferences.max_price) {
     priceFitScore = 20;
   } else {
-    // Hard budget limit penalty
-    priceFitScore = 0; // Exceeding max price gives 0 points
+    priceFitScore = 0; // Hard budget violation
   }
 
   // 4. Timing Fit Score (Max 10 points)
-  // Strict rule: Only score timing when date and time are known!
   let timingFitScore = 0;
   let dayMatched = false;
   let timeMatched = false;
-  let timingKnown = false;
+  const isUnknownTiming = !event.startDate;
 
   if (event.startDate) {
     const eventDate = new Date(event.startDate);
     if (!isNaN(eventDate.getTime())) {
-      timingKnown = true;
       const dayNum = eventDate.getDay();
       const isWeekend = dayNum === 0 || dayNum === 6;
       const eventDayCategory = isWeekend ? 'Weekend' : 'Weekday';
@@ -112,21 +107,24 @@ export function calculateRecommendation(
   }
 
   // 5. Novelty Score (Max 10 points)
-  let noveltyScore = 5;
-  const newTopicsCount = eventTopicsLower.filter((t) => !userInterestsLower.includes(t)).length;
-  if (eventGoal === 'Try something new' && newTopicsCount > 0) {
+  let noveltyScore = 0;
+  const newTopics = eventTopicsLower.filter((t) => !userInterestsLower.includes(t));
+  if (eventGoal === 'Try something new' && newTopics.length > 0) {
     noveltyScore = 10;
-  } else if (newTopicsCount > 0 && matchedCount > 0) {
-    noveltyScore = 7;
-  } else {
+  } else if (newTopics.length > 0 && matchedTopicsList.length > 0) {
     noveltyScore = 5;
+  } else {
+    noveltyScore = 0;
   }
 
-  // Total Score Calculation (0 - 100)
-  const totalScore = Math.min(
+  // Calculate Raw Total Score
+  const rawScore = Math.min(
     100,
     Math.max(0, interestMatchScore + goalMatchScore + priceFitScore + timingFitScore + noveltyScore)
   );
+
+  // Hard Budget Limit Penalty Rule: Hard budget violation caps score at 49 (cannot receive Go!)
+  const totalScore = isHardBudgetViolation ? Math.min(rawScore, 49) : rawScore;
 
   const scoringBreakdown: ScoreBreakdown = {
     interestMatchScore,
@@ -145,57 +143,73 @@ export function calculateRecommendation(
     decision = 'Maybe';
   }
 
-  // Determine Extraction Confidence
+  // Extraction Confidence & Decision Confidence Calculation
   const missingCount = (event.missingInformation || []).length;
   let confidence: 'High' | 'Medium' | 'Low' = 'High';
-  if (missingCount >= 3 || priceUncertain || !timingKnown) {
+  if (missingCount >= 3 || isUnknownPrice || isUnknownTiming) {
     confidence = 'Low';
   } else if (missingCount >= 1) {
     confidence = 'Medium';
   }
 
-  // Generate 3 Supporting Factors ("Why this recommendation")
+  const criticalFields = [
+    Boolean(event.title),
+    Boolean(event.startDate),
+    event.price !== null && event.price !== undefined,
+    Boolean(event.location || event.isOnline),
+    (event.topics || []).length > 0,
+  ];
+  const extractionConfidence = criticalFields.filter(Boolean).length / criticalFields.length;
+  const decisionConfidence = Number(((extractionConfidence + (totalScore / 100)) / 2).toFixed(2));
+
+  // Generate Reasons ONLY from Evidence
   const reasons: string[] = [];
   if (matchedTopicsList.length > 0) {
-    reasons.push(`Strong interest match in ${matchedTopicsList.slice(0, 2).join(' & ')}.`);
-  } else {
-    reasons.push(`Relevant event format (${event.eventType || 'Event'}).`);
+    reasons.push(`Matches your interest in ${matchedTopicsList.slice(0, 2).join(' and ')}.`);
   }
 
   if (goalMatchScore >= 20) {
     reasons.push(`Directly aligns with your goal to ${eventGoal.toLowerCase()}.`);
-  } else {
-    reasons.push(`Target audience aligns with ${event.likelyAudience?.[0] || 'tech professionals'}.`);
   }
 
   if (event.price === 0) {
-    reasons.push('Free event (no ticket cost).');
-  } else if (event.price !== null && event.price <= preferences.max_price) {
-    reasons.push(`Good price fit ($${event.price} vs max $${preferences.max_price}).`);
-  } else {
-    reasons.push(`Offers unique topic exploration.`);
+    reasons.push('Free event with zero ticket cost.');
+  } else if (event.price !== null && event.price !== undefined && event.price <= preferences.max_price) {
+    reasons.push(`Ticket price ($${event.price}) is within your max budget of $${preferences.max_price}.`);
   }
 
-  // Generate 1 Concern ("Watch out") when relevant
+  if (event.likelyAudience && event.likelyAudience.length > 0) {
+    reasons.push(`Target audience includes ${event.likelyAudience[0]}.`);
+  }
+
+  if (reasons.length === 0) {
+    reasons.push(`Presents opportunities related to ${eventGoal.toLowerCase()}.`);
+  }
+
+  // Generate Concerns from Known Evidence
   const concerns: string[] = [];
-  if (event.price !== null && event.price > preferences.max_price) {
-    concerns.push(`Ticket price ($${event.price}) exceeds your set budget limit of $${preferences.max_price}.`);
-  } else if (priceUncertain) {
-    concerns.push(`Ticket price is unlisted on the event page.`);
-  } else if (timingKnown && (!dayMatched || !timeMatched)) {
-    concerns.push(`Takes place outside your preferred time window.`);
-  } else if (!timingKnown) {
-    concerns.push(`Exact event date or time is unlisted.`);
+  if (isHardBudgetViolation) {
+    concerns.push(`Ticket price ($${event.price}) exceeds your max budget of $${preferences.max_price}.`);
   }
 
-  // 1-Sentence Bottom Line
+  if (isUnknownPrice) {
+    concerns.push('Ticket price was not listed on the event page.');
+  }
+
+  if (isUnknownTiming) {
+    concerns.push('The event date or time could not be confirmed.');
+  } else if (!dayMatched || !timeMatched) {
+    concerns.push('Takes place outside your preferred day or time window.');
+  }
+
+  // Bottom Line Summary
   let bottomLine = '';
   if (decision === 'Go') {
-    bottomLine = `This strongly matches your ${matchedTopicsList[0] || 'target'} interests and ${eventGoal.toLowerCase()} goal, and the price is within your budget.`;
+    bottomLine = `Strong match for your ${matchedTopicsList[0] || 'target'} interests and your goal of ${eventGoal.toLowerCase()}.`;
   } else if (decision === 'Maybe') {
-    bottomLine = `Good potential match (${totalScore}/100), but review the ${concerns[0] ? 'listed concern' : 'schedule details'} before deciding.`;
+    bottomLine = `Moderate potential fit (${totalScore}/100), but review the listed concerns before deciding.`;
   } else {
-    bottomLine = `Overall match score (${totalScore}/100) falls below recommended threshold due to budget or schedule conflicts.`;
+    bottomLine = `Match score (${totalScore}/100) falls below recommended threshold due to budget or schedule conflicts.`;
   }
 
   return {
@@ -203,8 +217,10 @@ export function calculateRecommendation(
     decision,
     bottomLine,
     reasons: reasons.slice(0, 3),
-    concerns: concerns.slice(0, 1),
+    concerns: concerns.slice(0, 2),
     confidence,
+    extractionConfidence,
+    decisionConfidence,
     scoringBreakdown,
     strongestReason: bottomLine,
     eventGoal,

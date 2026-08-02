@@ -12,17 +12,17 @@ export const Badge: React.FC<BadgeProps> = ({ decision, size = 'md', showIcon = 
   const configs = {
     Go: {
       label: 'GO',
-      bg: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+      bg: 'bg-emerald-100/80 border-emerald-300 text-emerald-900',
       icon: CheckCircle2,
     },
     Maybe: {
       label: 'MAYBE',
-      bg: 'bg-amber-50 border-amber-200 text-amber-700',
+      bg: 'bg-amber-100/80 border-amber-300 text-amber-900',
       icon: AlertTriangle,
     },
     Skip: {
       label: 'SKIP',
-      bg: 'bg-rose-50 border-rose-200 text-rose-700',
+      bg: 'bg-rose-100/80 border-rose-300 text-rose-900',
       icon: XCircle,
     },
   };
@@ -31,9 +31,9 @@ export const Badge: React.FC<BadgeProps> = ({ decision, size = 'md', showIcon = 
   const Icon = current.icon;
 
   const sizeClasses = {
-    sm: 'px-2.5 py-0.5 text-xs gap-1 font-bold rounded-full',
-    md: 'px-3.5 py-1 text-xs gap-1.5 font-extrabold rounded-full',
-    lg: 'px-5 py-2 text-lg gap-2 font-black tracking-wide rounded-full',
+    sm: 'px-3 py-0.5 text-xs gap-1 font-semibold rounded-full border',
+    md: 'px-4 py-1 text-xs gap-1.5 font-bold rounded-full border',
+    lg: 'px-6 py-2 text-base gap-2 font-extrabold tracking-wide rounded-full border shadow-sm',
   };
 
   const iconSizes = {
@@ -43,9 +43,7 @@ export const Badge: React.FC<BadgeProps> = ({ decision, size = 'md', showIcon = 
   };
 
   return (
-    <span
-      className={`inline-flex items-center border transition-all ${current.bg} ${sizeClasses[size]}`}
-    >
+    <span className={`inline-flex items-center transition-all ${current.bg} ${sizeClasses[size]}`}>
       {showIcon && <Icon className={iconSizes[size]} />}
       <span>{current.label}</span>
     </span>

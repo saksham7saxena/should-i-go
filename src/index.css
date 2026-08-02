@@ -4,12 +4,21 @@
 
 @layer base {
   body {
-    @apply bg-white text-slate-900 antialiased;
+    @apply bg-[#f5f5f5] text-[#0c0a09] antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  h1, h2, h3, h4 {
-    @apply tracking-tight font-semibold text-slate-900;
+  h1, h2, h3 {
+    font-family: 'Waldenburg', 'Georgia', 'Times New Roman', serif;
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    @apply text-[#0c0a09];
+  }
+
+  h4, h5, h6 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    @apply text-[#0c0a09];
   }
 }
 
@@ -26,4 +35,15 @@
 
 .animate-fade-in {
   animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Atmospheric Gradient Orb Effect */
+.gradient-orb-mint {
+  background: radial-gradient(circle, rgba(167,229,211,0.35) 0%, rgba(245,245,245,0) 70%);
+}
+.gradient-orb-peach {
+  background: radial-gradient(circle, rgba(244,197,168,0.35) 0%, rgba(245,245,245,0) 70%);
+}
+.gradient-orb-lavender {
+  background: radial-gradient(circle, rgba(200,184,224,0.35) 0%, rgba(245,245,245,0) 70%);
 }

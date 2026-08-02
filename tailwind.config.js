@@ -7,31 +7,41 @@ export default {
   theme: {
     extend: {
       colors: {
-        cal: {
-          primary: '#111111',
-          'primary-active': '#242424',
-          body: '#374151',
-          muted: '#6b7280',
-          hairline: '#e5e7eb',
-          'hairline-soft': '#f3f4f6',
-          canvas: '#ffffff',
-          'surface-soft': '#f8f9fa',
-          'surface-card': '#f5f5f5',
-          'surface-dark': '#101010',
+        eleven: {
+          canvas: '#f5f5f5',
+          'canvas-soft': '#fafafa',
+          ink: '#0c0a09',
+          primary: '#292524',
+          'primary-active': '#0c0a09',
+          body: '#4e4e4e',
+          'body-strong': '#292524',
+          muted: '#777169',
+          'muted-soft': '#a8a29e',
+          hairline: '#e7e5e4',
+          'hairline-strong': '#d6d3d1',
+          card: '#ffffff',
+        },
+        orb: {
+          mint: '#a7e5d3',
+          peach: '#f4c5a8',
+          lavender: '#c8b8e0',
+          sky: '#a8c8e8',
+          rose: '#e8b8c4',
         },
         decision: {
-          go: '#10b981',
-          maybe: '#f59e0b',
-          skip: '#ef4444',
+          go: '#16a34a',
+          maybe: '#d97706',
+          skip: '#dc2626',
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['Waldenburg', 'Georgia', 'Times New Roman', 'serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
-        'cal-card': '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05)',
-        'cal-hover': '0 4px 12px 0 rgba(0, 0, 0, 0.08)',
+        'eleven-card': '0 4px 16px 0 rgba(0, 0, 0, 0.04)',
+        'eleven-soft': '0 1px 3px 0 rgba(0, 0, 0, 0.03)',
       }
     },
   },

@@ -1,4 +1,4 @@
-// Core Type Definitions for Should I Go?
+// Core Type Definitions for Should I Go? V2
 
 export type InterestType =
   | 'AI'
@@ -29,9 +29,9 @@ export interface UserPreferences {
   user_id?: string;
   interests: InterestType[];
   max_price: number;
-  preferred_days: PreferredDayType[];
-  preferred_times: PreferredTimeType[];
-  primary_goal: PrimaryGoalType;
+  preferred_days?: PreferredDayType[];
+  preferred_times?: PreferredTimeType[];
+  primary_goal?: PrimaryGoalType;
   created_at?: string;
   updated_at?: string;
 }
@@ -47,7 +47,11 @@ export interface ExtractedEventData {
   likelyAudience: string[];
   speakersOrPerformers: string[];
   sourceUrl: string;
+  normalizedSourceUrl?: string;
   missingInformation: string[];
+  isOnline?: boolean;
+  extractionConfidence?: number; // 0.0 to 1.0
+  isManuallyEdited?: boolean;
 }
 
 export interface ScoreBreakdown {
@@ -62,17 +66,20 @@ export interface ScoreBreakdown {
 export interface ScoringResult {
   score: number;
   decision: DecisionType;
+  bottomLine: string;
   reasons: string[];
   concerns: string[];
   confidence: 'High' | 'Medium' | 'Low';
   scoringBreakdown: ScoreBreakdown;
   strongestReason: string;
+  eventGoal: PrimaryGoalType;
 }
 
 export interface EventRecord {
   id: string;
   user_id: string;
   source_url: string;
+  normalized_source_url?: string;
   title: string;
   description: string | null;
   start_date: string | null;
@@ -83,7 +90,9 @@ export interface EventRecord {
   likely_audience: string[];
   speakers_or_performers: string[];
   extracted_data: ExtractedEventData;
+  is_manually_edited?: boolean;
   created_at: string;
+  updated_at?: string;
 }
 
 export interface RecommendationRecord {
@@ -92,13 +101,17 @@ export interface RecommendationRecord {
   event_id: string;
   score: number;
   decision: DecisionType;
+  bottom_line?: string;
   reasons: string[];
   concerns: string[];
   confidence: 'High' | 'Medium' | 'Low';
   scoring_breakdown: ScoreBreakdown;
+  event_goal?: PrimaryGoalType;
   prompt_version: string;
   status: EventStatusType;
+  source_type?: 'url' | 'manual';
   created_at: string;
+  updated_at?: string;
   event?: EventRecord;
 }
 
@@ -106,11 +119,15 @@ export interface FeedbackRecord {
   id?: string;
   user_id?: string;
   recommendation_id: string;
-  attended: boolean;
-  worth_it: boolean;
-  accuracy_rating: number; // 1-5
+  attended?: boolean;
+  worth_it?: boolean;
+  accuracy_rating?: number; // 1-5
   notes?: string;
+  feedback_type?: 'post_event' | 'dismissal' | 'rating';
+  dismissed?: boolean;
+  dismissal_reason?: string;
   created_at?: string;
+  updated_at?: string;
 }
 
 export interface EvalTestItem {
@@ -123,6 +140,7 @@ export interface EvalTestItem {
     price: number | null;
     location: string | null;
     eventType: string;
+    topics: string[];
   };
   mockHtml?: string;
 }
@@ -132,6 +150,7 @@ export interface EvalRunResult {
   name: string;
   status: 'SUCCESS' | 'FAILURE';
   latencyMs: number;
+  estimatedTokens?: number;
   extracted: ExtractedEventData | null;
   fieldMatches: {
     title: boolean;
@@ -140,5 +159,6 @@ export interface EvalRunResult {
     location: boolean;
     eventType: boolean;
   };
+  missingFieldRate: number; // percentage
   errorMessage?: string;
 }

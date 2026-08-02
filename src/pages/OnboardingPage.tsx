@@ -1,28 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { InterestType, PrimaryGoalType, PreferredDayType, PreferredTimeType } from '../types';
+import { InterestType } from '../types';
 import { InterestChip, ALL_INTERESTS } from '../components/InterestChip';
-import { Sparkles, DollarSign, Calendar, Clock, Target, ArrowRight } from 'lucide-react';
+import { DollarSign, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export const OnboardingPage: React.FC = () => {
   const { preferences, updatePreferences } = useAuth();
   const navigate = useNavigate();
 
+  const [step, setStep] = useState<1 | 2>(1);
   const [interests, setInterests] = useState<InterestType[]>(
     preferences?.interests || ['AI', 'Startups', 'Technology']
   );
   const [maxPrice, setMaxPrice] = useState<number>(preferences?.max_price ?? 100);
-  const [preferredDays, setPreferredDays] = useState<PreferredDayType[]>(
-    preferences?.preferred_days || ['Weekday', 'Weekend']
-  );
-  const [preferredTimes, setPreferredTimes] = useState<PreferredTimeType[]>(
-    preferences?.preferred_times || ['Evening']
-  );
-  const [primaryGoal, setPrimaryGoal] = useState<PrimaryGoalType>(
-    preferences?.primary_goal || 'Learn something'
-  );
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const toggleInterest = (interest: InterestType) => {
@@ -31,191 +22,131 @@ export const OnboardingPage: React.FC = () => {
     );
   };
 
-  const toggleDay = (day: PreferredDayType) => {
-    setPreferredDays((prev) =>
-      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
-    );
-  };
-
-  const toggleTime = (time: PreferredTimeType) => {
-    setPreferredTimes((prev) =>
-      prev.includes(time) ? prev.filter((t) => t !== time) : [...prev, time]
-    );
-  };
-
-  const goalsList: { label: PrimaryGoalType; description: string }[] = [
-    { label: 'Learn something', description: 'Focus on workshops, technical talks, and keynotes.' },
-    { label: 'Meet people', description: 'Prioritize networking, founder mixers, and community meetups.' },
-    { label: 'Have fun', description: 'Look for festivals, live concerts, games, and entertainment.' },
-    { label: 'Try something new', description: 'Discover fresh topics and unique local experiences.' },
-  ];
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleNextStep = (e: React.FormEvent) => {
     e.preventDefault();
-    if (interests.length === 0) {
-      alert('Please select at least one interest.');
-      return;
+    if (step === 1) {
+      if (interests.length === 0) {
+        alert('Please select at least one interest.');
+        return;
+      }
+      setStep(2);
+    } else {
+      finishOnboarding();
     }
+  };
 
+  const finishOnboarding = async () => {
     setIsSubmitting(true);
     try {
       await updatePreferences({
         interests,
         max_price: maxPrice,
-        preferred_days: preferredDays,
-        preferred_times: preferredTimes,
-        primary_goal: primaryGoal,
       });
-      navigate('/analyze');
+
+      // Requirement 1: Retrieve preserved event URL from sessionStorage
+      const pendingUrl = sessionStorage.getItem('pending_event_url');
+      if (pendingUrl) {
+        sessionStorage.removeItem('pending_event_url');
+        navigate(`/analyze?url=${encodeURIComponent(pendingUrl)}`);
+      } else {
+        navigate('/');
+      }
     } catch (err) {
-      console.error('Error saving preferences:', err);
+      console.error('Error completing onboarding:', err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto py-10 px-4 space-y-8 animate-fade-in text-gray-900">
-      <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 border border-gray-200 text-gray-800 text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5 text-black" />
-          <span>Decision Profile</span>
+    <div className="max-w-xl mx-auto py-12 px-4 space-y-8 animate-fade-in text-[#0c0a09]">
+      {/* Step Header */}
+      <div className="text-center space-y-3">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#f0efed] border border-[#e7e5e4] text-[#0c0a09] text-xs font-semibold uppercase tracking-wider">
+          <span>Step {step} of 2</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-gray-900">What events matter to you?</h1>
-        <p className="text-sm text-gray-500">
-          Your selections determine deterministic event recommendation scores.
+        <h1 className="text-3xl font-serif text-[#0c0a09]">
+          {step === 1 ? 'Select your interests' : 'Set your maximum ticket budget'}
+        </h1>
+        <p className="text-xs text-[#777169]">
+          {step === 1
+            ? 'Choose topics you care about to personalize your event matching.'
+            : 'Specify the maximum amount you are willing to spend per event.'}
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8 bg-white border border-gray-200 rounded-xl p-6 sm:p-8 shadow-sm">
-        {/* Step 1: Select Interests */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-900 uppercase tracking-wider">
-            <Sparkles className="w-4 h-4 text-black" />
-            <span>Target Interests</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {ALL_INTERESTS.map((item) => (
-              <InterestChip
-                key={item}
-                label={item}
-                isSelected={interests.includes(item)}
-                onToggle={toggleInterest}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Step 2: Maximum Ticket Price */}
-        <div className="space-y-3 pt-4 border-t border-gray-100">
-          <div className="flex items-center justify-between text-xs font-bold text-gray-900 uppercase tracking-wider">
-            <div className="flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-gray-700" />
-              <span>Maximum Ticket Price</span>
+      <form onSubmit={handleNextStep} className="bg-white border border-[#e7e5e4] rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
+        {step === 1 ? (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#0c0a09] uppercase tracking-wider">
+              <Sparkles className="w-4 h-4 text-[#0c0a09]" />
+              <span>Interests</span>
             </div>
-            <span className="font-mono text-black text-sm font-bold">
-              {maxPrice === 0 ? 'Free Only ($0)' : `$${maxPrice}`}
-            </span>
+            <div className="flex flex-wrap gap-2.5">
+              {ALL_INTERESTS.map((item) => (
+                <InterestChip
+                  key={item}
+                  label={item}
+                  isSelected={interests.includes(item)}
+                  onToggle={toggleInterest}
+                />
+              ))}
+            </div>
           </div>
-          <input
-            type="range"
-            min={0}
-            max={500}
-            step={10}
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(Number(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
-          />
-          <div className="flex justify-between text-[11px] text-gray-500 font-mono">
-            <span>$0 (Free)</span>
-            <span>$100</span>
-            <span>$250</span>
-            <span>$500+</span>
-          </div>
-        </div>
+        ) : (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between text-xs font-semibold text-[#0c0a09] uppercase tracking-wider">
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-[#0c0a09]" />
+                <span>Max Ticket Price</span>
+              </div>
+              <span className="font-mono text-[#0c0a09] text-base font-bold">
+                {maxPrice === 0 ? 'Free Only ($0)' : `$${maxPrice}`}
+              </span>
+            </div>
 
-        {/* Step 3: Preferred Days */}
-        <div className="space-y-3 pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-900 uppercase tracking-wider">
-            <Calendar className="w-4 h-4 text-gray-700" />
-            <span>Preferred Days</span>
+            <input
+              type="range"
+              min={0}
+              max={500}
+              step={10}
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(Number(e.target.value))}
+              className="w-full h-2 bg-[#f0efed] rounded-lg appearance-none cursor-pointer accent-[#0c0a09]"
+            />
+            <div className="flex justify-between text-[11px] text-[#777169] font-mono">
+              <span>$0 (Free)</span>
+              <span>$100</span>
+              <span>$250</span>
+              <span>$500+</span>
+            </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            {(['Weekday', 'Weekend'] as PreferredDayType[]).map((day) => (
-              <button
-                key={day}
-                type="button"
-                onClick={() => toggleDay(day)}
-                className={`py-2.5 px-4 rounded-lg border text-xs font-bold transition-all ${
-                  preferredDays.includes(day)
-                    ? 'bg-black border-black text-white'
-                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {day}s
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
 
-        {/* Step 4: Preferred Times */}
-        <div className="space-y-3 pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-900 uppercase tracking-wider">
-            <Clock className="w-4 h-4 text-gray-700" />
-            <span>Preferred Event Hours</span>
-          </div>
-          <div className="grid grid-cols-3 gap-3">
-            {(['Morning', 'Afternoon', 'Evening'] as PreferredTimeType[]).map((time) => (
-              <button
-                key={time}
-                type="button"
-                onClick={() => toggleTime(time)}
-                className={`py-2.5 px-3 rounded-lg border text-xs font-bold transition-all ${
-                  preferredTimes.includes(time)
-                    ? 'bg-black border-black text-white'
-                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {time}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Navigation Buttons */}
+        <div className="flex items-center justify-between pt-4 border-t border-[#e7e5e4] gap-3">
+          {step === 2 ? (
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="px-4 py-2.5 rounded-full border border-[#e7e5e4] text-xs font-semibold text-[#4e4e4e] hover:bg-[#fafafa] transition-all flex items-center gap-1.5"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </button>
+          ) : (
+            <div />
+          )}
 
-        {/* Step 5: Primary Goal */}
-        <div className="space-y-3 pt-4 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-900 uppercase tracking-wider">
-            <Target className="w-4 h-4 text-gray-700" />
-            <span>Primary Goal for Attending</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {goalsList.map((g) => (
-              <button
-                key={g.label}
-                type="button"
-                onClick={() => setPrimaryGoal(g.label)}
-                className={`p-3.5 rounded-lg border text-left transition-all space-y-1 ${
-                  primaryGoal === g.label
-                    ? 'bg-black border-black text-white'
-                    : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <div className={`font-bold text-xs ${primaryGoal === g.label ? 'text-white' : 'text-gray-900'}`}>{g.label}</div>
-                <div className={`text-[11px] ${primaryGoal === g.label ? 'text-gray-300' : 'text-gray-500'}`}>{g.description}</div>
-              </button>
-            ))}
-          </div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-6 py-2.5 bg-[#0c0a09] hover:bg-[#292524] text-white font-semibold text-xs rounded-full shadow-xs transition-all flex items-center gap-2 ml-auto"
+          >
+            <span>{step === 1 ? 'Continue to Budget' : isSubmitting ? 'Saving Profile...' : 'Complete Setup'}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
-
-        {/* Save Button */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full py-3 bg-black hover:bg-gray-800 text-white font-bold text-sm rounded-lg shadow-sm transition-all flex items-center justify-center gap-2"
-        >
-          <span>{isSubmitting ? 'Saving Profile...' : 'Save Profile & Continue'}</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
       </form>
     </div>
   );

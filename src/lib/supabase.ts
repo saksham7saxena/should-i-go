@@ -1,9 +1,9 @@
-// Supabase Client and Anonymous Authentication Helper
+// Supabase Client and Anonymous Auth Helper V2
 
 import { createClient } from '@supabase/supabase-js';
 import { UserPreferences, EventRecord, RecommendationRecord, FeedbackRecord } from '../types';
+import { normalizeUrl } from './gemini';
 
-// Fallback environment variable keys
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-project.supabase.co';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key';
 
@@ -37,7 +37,6 @@ export async function getOrCreateAnonymousUser(): Promise<string> {
     }
   }
 
-  // Local Storage Fallback
   let localUserId = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
   if (!localUserId) {
     localUserId = `anon_${crypto.randomUUID()}`;
@@ -74,7 +73,6 @@ export async function fetchUserPreferences(userId: string): Promise<UserPreferen
     }
   }
 
-  // Fallback
   const stored = localStorage.getItem(LOCAL_STORAGE_PREFS_KEY);
   if (stored) {
     try {
@@ -85,10 +83,15 @@ export async function fetchUserPreferences(userId: string): Promise<UserPreferen
 }
 
 // 3. Save User Preferences
-export async function saveUserPreferences(userId: string, prefs: Omit<UserPreferences, 'id' | 'user_id'>): Promise<UserPreferences> {
+export async function saveUserPreferences(userId: string, prefs: Partial<UserPreferences>): Promise<UserPreferences> {
+  const existing = await fetchUserPreferences(userId);
   const record: UserPreferences = {
-    ...prefs,
     user_id: userId,
+    interests: prefs.interests || existing?.interests || ['AI', 'Technology'],
+    max_price: prefs.max_price ?? existing?.max_price ?? 100,
+    preferred_days: prefs.preferred_days || existing?.preferred_days || [],
+    preferred_times: prefs.preferred_times || existing?.preferred_times || [],
+    primary_goal: prefs.primary_goal || existing?.primary_goal,
     updated_at: new Date().toISOString(),
   };
 
@@ -98,11 +101,11 @@ export async function saveUserPreferences(userId: string, prefs: Omit<UserPrefer
         .from('preferences')
         .upsert({
           user_id: userId,
-          interests: prefs.interests,
-          max_price: prefs.max_price,
-          preferred_days: prefs.preferred_days,
-          preferred_times: prefs.preferred_times,
-          primary_goal: prefs.primary_goal,
+          interests: record.interests,
+          max_price: record.max_price,
+          preferred_days: record.preferred_days,
+          preferred_times: record.preferred_times,
+          primary_goal: record.primary_goal,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' })
         .select()
@@ -117,45 +120,43 @@ export async function saveUserPreferences(userId: string, prefs: Omit<UserPrefer
     }
   }
 
-  // Fallback
   localStorage.setItem(LOCAL_STORAGE_PREFS_KEY, JSON.stringify(record));
   return record;
 }
 
-// 4. Save Event & Recommendation (Prevents duplicate source_url)
-export async function saveEventAndRecommendation(
+// 4. Save Event & Recommendation ONLY when user explicitly chooses 'Save for later' or 'I’m going'
+export async function saveEventRecommendationExplicit(
   userId: string,
   eventData: any,
-  recommendationData: any
+  recommendationData: any,
+  status: 'Considering' | 'Attending' = 'Considering'
 ): Promise<{ event: EventRecord; recommendation: RecommendationRecord }> {
-  // Check local duplicate check
-  const savedEvents: EventRecord[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_EVENTS_KEY) || '[]');
-  const existing = savedEvents.find((e) => e.user_id === userId && e.source_url === eventData.sourceUrl);
-  if (existing) {
-    const savedRecs: RecommendationRecord[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_RECS_KEY) || '[]');
-    const existingRec = savedRecs.find((r) => r.event_id === existing.id);
-    if (existingRec) {
-      return { event: existing, recommendation: existingRec };
-    }
-  }
+  const normUrl = normalizeUrl(eventData.sourceUrl || eventData.source_url || '');
 
-  const eventId = crypto.randomUUID();
-  const recId = crypto.randomUUID();
+  const savedEvents: EventRecord[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_EVENTS_KEY) || '[]');
+  const existingEventIdx = savedEvents.findIndex(
+    (e) => e.user_id === userId && normalizeUrl(e.source_url) === normUrl
+  );
+
+  let eventId = existingEventIdx !== -1 ? savedEvents[existingEventIdx].id : crypto.randomUUID();
+  let recId = crypto.randomUUID();
 
   const eventRecord: EventRecord = {
     id: eventId,
     user_id: userId,
-    source_url: eventData.sourceUrl,
+    source_url: eventData.sourceUrl || eventData.source_url,
+    normalized_source_url: normUrl,
     title: eventData.title,
     description: eventData.description,
-    start_date: eventData.startDate,
+    start_date: eventData.startDate || eventData.start_date,
     location: eventData.location,
     price: eventData.price,
-    event_type: eventData.eventType,
+    event_type: eventData.eventType || eventData.event_type,
     topics: eventData.topics || [],
-    likely_audience: eventData.likelyAudience || [],
-    speakers_or_performers: eventData.speakersOrPerformers || [],
+    likely_audience: eventData.likelyAudience || eventData.likely_audience || [],
+    speakers_or_performers: eventData.speakersOrPerformers || eventData.speakers_or_performers || [],
     extracted_data: eventData,
+    is_manually_edited: Boolean(eventData.isManuallyEdited),
     created_at: new Date().toISOString(),
   };
 
@@ -165,69 +166,78 @@ export async function saveEventAndRecommendation(
     event_id: eventId,
     score: recommendationData.score,
     decision: recommendationData.decision,
+    bottom_line: recommendationData.bottomLine,
     reasons: recommendationData.reasons,
     concerns: recommendationData.concerns,
     confidence: recommendationData.confidence,
-    scoring_breakdown: recommendationData.scoringBreakdown,
-    prompt_version: 'v1.0.0',
-    status: 'Considering',
+    scoring_breakdown: recommendationData.scoringBreakdown || recommendationData.scoring_breakdown,
+    event_goal: recommendationData.eventGoal,
+    prompt_version: 'v2.0.0',
+    status,
     created_at: new Date().toISOString(),
     event: eventRecord,
   };
 
   if (isSupabaseConfigured) {
     try {
-      // Upsert event
-      const { data: dbEvent, error: eventErr } = await supabase
+      const { data: dbEvent } = await supabase
         .from('events')
         .upsert({
           user_id: userId,
-          source_url: eventData.sourceUrl,
-          title: eventData.title,
-          description: eventData.description,
-          start_date: eventData.startDate,
-          location: eventData.location,
-          price: eventData.price,
-          event_type: eventData.eventType,
-          topics: eventData.topics,
-          likely_audience: eventData.likelyAudience,
-          speakers_or_performers: eventData.speakersOrPerformers,
+          source_url: eventRecord.source_url,
+          normalized_source_url: normUrl,
+          title: eventRecord.title,
+          description: eventRecord.description,
+          start_date: eventRecord.start_date,
+          location: eventRecord.location,
+          price: eventRecord.price,
+          event_type: eventRecord.event_type,
+          topics: eventRecord.topics,
+          likely_audience: eventRecord.likely_audience,
+          speakers_or_performers: eventRecord.speakers_or_performers,
           extracted_data: eventData,
-        }, { onConflict: 'user_id,source_url' })
+          is_manually_edited: eventRecord.is_manually_edited,
+        }, { onConflict: 'user_id,normalized_source_url' })
         .select()
         .single();
 
-      if (!eventErr && dbEvent) {
-        const { data: dbRec, error: recErr } = await supabase
+      if (dbEvent) {
+        const { data: dbRec } = await supabase
           .from('recommendations')
           .insert({
             user_id: userId,
             event_id: dbEvent.id,
             score: recommendationData.score,
             decision: recommendationData.decision,
+            bottom_line: recommendationData.bottomLine,
             reasons: recommendationData.reasons,
             concerns: recommendationData.concerns,
             confidence: recommendationData.confidence,
-            scoring_breakdown: recommendationData.scoringBreakdown,
-            prompt_version: 'v1.0.0',
-            status: 'Considering',
+            scoring_breakdown: recommendationData.scoringBreakdown || recommendationData.scoring_breakdown,
+            event_goal: recommendationData.eventGoal,
+            prompt_version: 'v2.0.0',
+            status,
           })
           .select()
           .single();
 
-        if (!recErr && dbRec) {
+        if (dbRec) {
           const resEvent = dbEvent as EventRecord;
           const resRec = { ...dbRec, event: resEvent } as RecommendationRecord;
           return { event: resEvent, recommendation: resRec };
         }
       }
     } catch (err) {
-      console.warn('Error saving to Supabase:', err);
+      console.warn('Error saving explicitly to Supabase:', err);
     }
   }
 
   // Local storage fallback
-  savedEvents.push(eventRecord);
+  if (existingEventIdx !== -1) {
+    savedEvents[existingEventIdx] = eventRecord;
+  } else {
+    savedEvents.push(eventRecord);
+  }
   localStorage.setItem(LOCAL_STORAGE_EVENTS_KEY, JSON.stringify(savedEvents));
 
   const savedRecs: RecommendationRecord[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_RECS_KEY) || '[]');
@@ -237,7 +247,35 @@ export async function saveEventAndRecommendation(
   return { event: eventRecord, recommendation: recommendationRecord };
 }
 
-// 5. Fetch All Saved Recommendations for User
+// 5. Dismiss / "Not for me" Feedback logger
+export async function logNotForMeFeedback(userId: string, eventData: any, recommendationData: any): Promise<void> {
+  const normUrl = normalizeUrl(eventData.sourceUrl || '');
+  if (isSupabaseConfigured) {
+    try {
+      await supabase.from('feedback').insert({
+        user_id: userId,
+        recommendation_id: crypto.randomUUID(),
+        dismissed: true,
+        dismissal_reason: 'Not for me',
+        notes: `Dismissed recommendation for ${eventData.title} (${normUrl})`,
+      });
+      return;
+    } catch (_) {}
+  }
+
+  const savedFeedback: FeedbackRecord[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_FEEDBACK_KEY) || '[]');
+  savedFeedback.push({
+    id: crypto.randomUUID(),
+    user_id: userId,
+    recommendation_id: crypto.randomUUID(),
+    dismissed: true,
+    dismissal_reason: 'Not for me',
+    created_at: new Date().toISOString(),
+  });
+  localStorage.setItem(LOCAL_STORAGE_FEEDBACK_KEY, JSON.stringify(savedFeedback));
+}
+
+// 6. Fetch All Saved Recommendations for User
 export async function fetchSavedRecommendations(userId: string): Promise<RecommendationRecord[]> {
   if (isSupabaseConfigured) {
     try {
@@ -255,18 +293,17 @@ export async function fetchSavedRecommendations(userId: string): Promise<Recomme
     }
   }
 
-  // Fallback
   const savedRecs: RecommendationRecord[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_RECS_KEY) || '[]');
   return savedRecs.filter((r) => r.user_id === userId);
 }
 
-// 6. Update Recommendation Status
+// 7. Update Recommendation Status
 export async function updateRecommendationStatus(recId: string, status: RecommendationRecord['status']): Promise<boolean> {
   if (isSupabaseConfigured) {
     try {
       const { error } = await supabase
         .from('recommendations')
-        .update({ status })
+        .update({ status, updated_at: new Date().toISOString() })
         .eq('id', recId);
       if (!error) return true;
     } catch (err) {
@@ -284,8 +321,8 @@ export async function updateRecommendationStatus(recId: string, status: Recommen
   return false;
 }
 
-// 7. Submit Feedback
-export async function submitFeedback(userId: string, recId: string, feedback: Omit<FeedbackRecord, 'id' | 'user_id' | 'recommendation_id'>): Promise<boolean> {
+// 8. Submit Feedback
+export async function submitFeedback(userId: string, recId: string, feedback: Partial<FeedbackRecord>): Promise<boolean> {
   if (isSupabaseConfigured) {
     try {
       const { error } = await supabase
@@ -297,6 +334,8 @@ export async function submitFeedback(userId: string, recId: string, feedback: Om
           worth_it: feedback.worth_it,
           accuracy_rating: feedback.accuracy_rating,
           notes: feedback.notes,
+          feedback_type: feedback.feedback_type || 'post_event',
+          dismissed: feedback.dismissed || false,
         });
       if (!error) return true;
     } catch (err) {

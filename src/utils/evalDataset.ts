@@ -1,0 +1,136 @@
+// Evaluation Dataset containing 10 test event items for developer `/evals` page benchmarking
+
+import { EvalTestItem } from '../types';
+
+export const EVAL_DATASET: EvalTestItem[] = [
+  {
+    id: 'eval-1',
+    name: 'TechCrunch Disrupt SF 2026',
+    url: 'https://techcrunch.com/events/disrupt-2026',
+    expected: {
+      title: 'TechCrunch Disrupt SF 2026',
+      startDate: '2026-10-15T09:00:00Z',
+      price: 299,
+      location: 'San Francisco, CA',
+      eventType: 'Conference',
+    },
+    mockHtml: 'TechCrunch Disrupt SF 2026 on October 15, 2026 at Moscone Center, San Francisco CA. Tickets starting at $299. Premier startup and technology conference.',
+  },
+  {
+    id: 'eval-2',
+    name: 'AI Agent Architecture Summit',
+    url: 'https://ai-summit.dev/agents-2026',
+    expected: {
+      title: 'AI Agent Architecture Summit',
+      startDate: '2026-09-08T10:00:00Z',
+      price: 0,
+      location: 'Online Stream',
+      eventType: 'Summit',
+    },
+    mockHtml: 'Join developers worldwide for AI Agent Architecture Summit on Sept 8, 2026. Free virtual conference focusing on agentic workflows and tool-calling models.',
+  },
+  {
+    id: 'eval-3',
+    name: 'UX & Product Design Intensive',
+    url: 'https://designacademy.org/workshops/ux-intensive',
+    expected: {
+      title: 'UX & Product Design Intensive',
+      startDate: '2026-11-02T13:00:00Z',
+      price: 150,
+      location: 'New York, NY',
+      eventType: 'Workshop',
+    },
+    mockHtml: 'UX & Product Design Intensive workshop on Nov 2, 2026 in New York, NY. Hands-on Figma design systems masterclass. Ticket price $150.',
+  },
+  {
+    id: 'eval-4',
+    name: 'Austin Indie Music & Art Festival',
+    url: 'https://austin-festivals.com/indie-soundscapes',
+    expected: {
+      title: 'Austin Indie Music & Art Festival',
+      startDate: '2026-08-20T17:00:00Z',
+      price: 65,
+      location: 'Austin, TX',
+      eventType: 'Festival',
+    },
+    mockHtml: 'Austin Indie Music & Art Festival. Live music, art installations, local food trucks. August 20, 2026 in Zilker Park, Austin TX. General admission $65.',
+  },
+  {
+    id: 'eval-5',
+    name: 'Local Founder & VC Networking Mixer',
+    url: 'https://meetup.com/bayarea-founders/events/2026-mixer',
+    expected: {
+      title: 'Local Founder & VC Networking Mixer',
+      startDate: '2026-08-14T18:00:00Z',
+      price: 20,
+      location: 'Palo Alto, CA',
+      eventType: 'Networking',
+    },
+    mockHtml: 'Local Founder & VC Networking Mixer on Friday Aug 14, 2026 at 6 PM in Palo Alto CA. Meet early stage startups and angel investors. Cover charge $20.',
+  },
+  {
+    id: 'eval-6',
+    name: 'Full Stack TypeScript & React Conference',
+    url: 'https://reactconf.org/2026',
+    expected: {
+      title: 'Full Stack TypeScript & React Conference',
+      startDate: '2026-09-22T09:30:00Z',
+      price: 199,
+      location: 'Seattle, WA',
+      eventType: 'Conference',
+    },
+    mockHtml: 'Full Stack TypeScript & React Conference on Sept 22, 2026 in Seattle WA. Deep dives into Server Components and Vite 6. Registration $199.',
+  },
+  {
+    id: 'eval-7',
+    name: 'Outdoor Trail Run & Fitness Challenge',
+    url: 'https://outdoorsports.org/events/trail-run',
+    expected: {
+      title: 'Outdoor Trail Run & Fitness Challenge',
+      startDate: '2026-08-29T07:00:00Z',
+      price: 35,
+      location: 'Boulder, CO',
+      eventType: 'Sports',
+    },
+    mockHtml: 'Outdoor Trail Run & Fitness Challenge on August 29, 2026 at 7 AM in Boulder CO. 10k trail run through Chautauqua Park. Entry fee $35.',
+  },
+  {
+    id: 'eval-8',
+    name: 'International Indie Film Showcase',
+    url: 'https://filmfest.org/indie-showcase-2026',
+    expected: {
+      title: 'International Indie Film Showcase',
+      startDate: '2026-10-05T19:00:00Z',
+      price: 18,
+      location: 'Los Angeles, CA',
+      eventType: 'Film',
+    },
+    mockHtml: 'International Indie Film Showcase on Oct 5, 2026 at 7 PM at Chinese Theatre, Los Angeles CA. Premiering 5 award-winning short films. Tickets $18.',
+  },
+  {
+    id: 'eval-9',
+    name: 'Artisan Food & Craft Beer Expo',
+    url: 'https://foodandbeerexpo.com/2026',
+    expected: {
+      title: 'Artisan Food & Craft Beer Expo',
+      startDate: '2026-09-12T12:00:00Z',
+      price: 45,
+      location: 'Chicago, IL',
+      eventType: 'Food',
+    },
+    mockHtml: 'Artisan Food & Craft Beer Expo on Sept 12, 2026 at Navy Pier, Chicago IL. Sample food from 40 top chefs and craft breweries. Ticket price $45.',
+  },
+  {
+    id: 'eval-10',
+    name: 'Generative AI Hackathon 2026',
+    url: 'https://hackathon.io/genai-2026',
+    expected: {
+      title: 'Generative AI Hackathon 2026',
+      startDate: '2026-08-22T08:00:00Z',
+      price: 0,
+      location: 'San Jose, CA',
+      eventType: 'Hackathon',
+    },
+    mockHtml: 'Generative AI Hackathon 2026 on Aug 22, 2026 in San Jose CA. 48-hour build competition with $50,000 in prizes. Free to enter for developers and designers.',
+  },
+];
